@@ -1,0 +1,44 @@
+<mvc:View
+    controllerName="zdom.zdom.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:c="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    displayBlock="true"
+    height="100%"
+    busyIndicatorDelay="0"
+>
+    <Page
+        id="pageMain"
+        title="{i18n>title}"
+    >
+        <content>
+            <Panel
+                headerText="{i18n>headerText}"
+                class="sapUiResponsiveMargin"
+                width="auto"
+            >
+                <l:HorizontalLayout
+                    id="verticallayoutView"
+                    class="sapUiContentPadding"
+                >
+                    <Input
+                        id="userIdInput"
+                        value="{MainJSON>/Operario}"
+                        class="sapUiSmallMarginBottom"
+                        placeholder="{i18n>inputLogin}"
+                        liveChange="onUserInputLiveChange"
+                        width="auto"
+                    />
+                    <Button
+                        id="buttonIngresar"
+                        text="{i18n>accessButton}"
+                        press=".onLoginPress"
+                        icon="sap-icon://visits"
+                        width="100%"
+                    />
+                </l:HorizontalLayout>
+            </Panel>
+        </content>
+    </Page>
+</mvc:View>

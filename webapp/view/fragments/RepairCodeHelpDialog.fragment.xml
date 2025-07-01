@@ -1,0 +1,97 @@
+<core:FragmentDefinition
+    xmlns:m="sap.m"
+    xmlns:core="sap.ui.core"
+	xmlns:table="sap.ui.table"
+	xmlns="sap.ui.comp.valuehelpdialog"
+	xmlns:fb="sap.ui.comp.filterbar"
+>
+    <!-- <SelectDialog
+		title="Products"
+		items="{path: 'helpData>/'}"
+		search=".onValueHelpSearch"
+		confirm=".onValueHelpClose"
+		cancel=".onValueHelpClose">
+		<StandardListItem
+            iconDensityAware="false"
+			iconInset="false"
+			title="{helpData>code}"
+			description="{helpData>description}"/>
+	</SelectDialog> -->
+    <ValueHelpDialog
+        title="{i18n>repairCodeSelection}"
+        ok=".onValueHelpOkPress"
+        cancel=".onExitDialog"
+        key="RepairCode"
+        descriptionKey="Name"
+        supportMultiselect="false"
+    >
+        <filterBar>
+            <fb:FilterBar search="onFilterBarSearch">
+                <fb:filterGroupItems>
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="RepairCode"
+                        label="{i18n>repairCode}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:Input name="RepairCode" submit="onSubmitFilter"/>
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                    <!-- <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="EndDate"
+                        label="{i18n>textFilterLabelDate}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:DateRangeSelection
+                                id="DRS"
+                                name="EndDate"
+                                class="DRS1"
+                                value="{
+                                'type': 'sap.ui.model.type.DateInterval',
+                                'formatOptions': {
+                                    'pattern': 'yyyy/MM/dd'
+                                },
+                                'parts': [
+                                    {
+                                        'type': 'sap.ui.model.type.Date',
+                                        'path': '/start'
+                                    },
+                                    {
+                                        'type': 'sap.ui.model.type.Date',
+                                        'path': '/end'
+                                    }
+                                ]
+                            }"
+                                change="handleChange"
+                            />
+                        </fb:control>
+                    </fb:FilterGroupItem> -->
+                    <!-- <fb:FilterGroupItem
+						groupName="__$INTERNAL$"
+						name="gstrp"
+						label="Fecha"
+						visibleInFilterBar="true"
+					>
+						<fb:control>
+							<m:Input name="gstrp" />
+						</fb:control>
+					</fb:FilterGroupItem>
+
+					<fb:FilterGroupItem
+						groupName="__$INTERNAL$"
+						name="objnr"
+						label="Numero de Objeto"
+						visibleInFilterBar="true"
+					>
+						<fb:control>
+							<m:Input name="objnr" />
+						</fb:control>
+					</fb:FilterGroupItem> -->
+                </fb:filterGroupItems>
+            </fb:FilterBar>
+        </filterBar>
+    </ValueHelpDialog>
+</core:FragmentDefinition>

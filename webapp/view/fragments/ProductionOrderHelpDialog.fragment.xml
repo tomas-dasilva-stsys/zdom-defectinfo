@@ -1,0 +1,109 @@
+<core:FragmentDefinition
+    xmlns:m="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:table="sap.ui.table"
+    xmlns="sap.ui.comp.valuehelpdialog"
+    xmlns:fb="sap.ui.comp.filterbar"
+>
+    <!-- <SelectDialog
+		title="Products"
+		items="{path: 'helpData>/'}"
+		search=".onValueHelpSearch"
+		confirm=".onValueHelpClose"
+		cancel=".onValueHelpClose">
+		<StandardListItem
+            iconDensityAware="false"
+			iconInset="false"
+			title="{helpData>code}"
+			description="{helpData>description}"/>
+	</SelectDialog> -->
+    <ValueHelpDialog
+        title="{i18n>productionOrderSelection}"
+        ok=".onValueHelpOkPress"
+        cancel=".onExitDialog"
+        key="ProductionOrder"
+        descriptionKey="Name"
+        supportMultiselect="false"
+    >
+        <filterBar>
+            <fb:FilterBar search="onFilterBarSearch">
+                <fb:filterGroupItems>
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="ProductionOrder"
+                        label="{i18n>productionOrder}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:Input name="ProductionOrder" />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="ReleaseDate"
+                        label="{i18n>releaseDate}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:DatePicker
+                                name="ReleaseDate"
+                                class="DRS1"
+                                displayFormat="dd/MM/yyyy"
+                                valueFormat="yyyy-MM-dd"
+                                change="handleChange"
+                            />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="ReleaseDateTo"
+                        label="{i18n>releaseDateTo}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:DatePicker
+                                name="ReleaseDateTo"
+                                class="DRS1"
+                                change="handleChange"
+                                displayFormat="dd/MM/yyyy"
+                                valueFormat="yyyy-MM-dd"
+                            />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
+                        name="OrderType"
+                        label="{i18n>orderType}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:Input name="OrderType" />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                    <!-- <fb:FilterGroupItem
+						groupName="__$INTERNAL$"
+						name="gstrp"
+						label="Fecha"
+						visibleInFilterBar="true"
+					>
+						<fb:control>
+							<m:Input name="gstrp" />
+						</fb:control>
+					</fb:FilterGroupItem>
+
+					<fb:FilterGroupItem
+						groupName="__$INTERNAL$"
+						name="objnr"
+						label="Numero de Objeto"
+						visibleInFilterBar="true"
+					>
+						<fb:control>
+							<m:Input name="objnr" />
+						</fb:control>
+					</fb:FilterGroupItem> -->
+                </fb:filterGroupItems>
+            </fb:FilterBar>
+        </filterBar>
+    </ValueHelpDialog>
+</core:FragmentDefinition>

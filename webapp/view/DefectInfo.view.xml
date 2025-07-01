@@ -1,0 +1,463 @@
+<mvc:View
+    controllerName="zdom.zdom.controller.DefectInfo"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:plugins="sap.m.plugins"
+    displayBlock="true"
+>
+    <Page
+        id="pageDefectinfo"
+        class="sapUiResponsiveContentPadding"
+    >
+        <content>
+            <Panel
+                headerText="{i18n>defectTitle}"
+                expandable="true"
+                expanded="true"
+                class="sapUiMediumMarginTop"
+            >
+                <content>
+                    <l:Grid
+                        defaultSpan="L4 M6 S12"
+                        hSpacing="2"
+                    >
+                        <!-- PLANT -->
+                        <VBox>
+                            <Label
+                                text="{i18n>plant}"
+                                required="true"
+                            />
+                            <Input
+                                id="Plant"
+                                name="Plant"
+                                value="{AppJsonModel>/DefectInfo/Plant}"
+                                required="true"
+                                showValueHelp="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                            />
+                        </VBox>
+
+                        <!-- PRODUCTION OPERATION -->
+                        <VBox>
+                            <Label
+                                text="{i18n>productionOrderOp}"
+                                required="true"
+                            />
+                            <Input
+                                id="ProductOrderOperation"
+                                name="ProductOrderOperation"
+                                value="{AppJsonModel>/DefectInfo/ProductOrderOperation}"
+                                required="true"
+                                showValueHelp="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                            />
+                        </VBox>
+
+                        <!-- CAUSE CODE -->
+                        <VBox>
+                            <Label
+                                text="{i18n>causeCode}"
+                                required="true"
+                                labelFor="CauseCodeGruppe"
+                            />
+                            <FlexBox>
+                                <Input
+                                    id="CauseCodeGruppe"
+                                    name="CauseCodeGruppe"
+                                    showSuggestion="true"
+                                    showValueHelp="true"
+                                    valueHelpRequest=".onValueHelpRequest"
+                                    valueStateText="{i18n>causeCodeGruppe} {i18n>requiredField}"
+                                    change="onInputChange"
+                                    submit="submitValue"
+                                    value="{AppJsonModel>/DefectInfo/CauseCodeGruppe}"
+                                    required="true"
+                                    liveChange="onLiveChange"
+                                >
+                                    <suggestionItems>
+                                        <core:Item text="{Name}" />
+                                    </suggestionItems>
+                                </Input>
+                                <Input
+                                    id="CauseCode"
+                                    name="CauseCode"
+                                    showSuggestion="true"
+                                    showValueHelp="true"
+                                    valueStateText="{i18n>causeCode} {i18n>requiredField}"
+                                    valueHelpRequest=".onValueHelpRequest"
+                                    change="onInputChange"
+                                    submit="submitValue"
+                                    value="{AppJsonModel>/DefectInfo/CauseCode}"
+                                    required="true"
+                                    maxLength="4"
+                                >
+                                    <suggestionItems>
+                                        <core:Item text="{Name}" />
+                                    </suggestionItems>
+                                </Input>
+                            </FlexBox>
+                        </VBox>
+
+                        <!-- WORKCENTER  -->
+                        <VBox>
+                            <Label
+                                text="{i18n>workcenter}"
+                                required="true"
+                                labelFor="WorkCenter"
+                            />
+                            <Input
+                                id="WorkCenter"
+                                name="WorkCenter"
+                                showValueHelp="{AppJsonModel>/Editable/ShowValueHelp}"
+                                enabled="{AppJsonModel>/Enabled/WorkCenter}"
+                                editable="{AppJsonModel>/Editable/WorkCenter}"
+                                valueHelpRequest=".onValueHelpRequestWorkCenter"
+                                valueStateText="{i18n>workcenter} {i18n>requiredField}"
+                                required="true"
+                                submit="submitValue"
+                                change="onInputChange"
+                                value="{AppJsonModel>/DefectInfo/WorkCenter}"
+                                maxLength="8"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox>
+
+                        <!-- EQUIPMENT -->
+                        <VBox>
+                            <Label
+                                text="{i18n>equipment}"
+                                required="true"
+                            />
+                            <Input
+                                id="Equipment"
+                                name="Equipment"
+                                showSuggestion="true"
+                                showValueHelp="true"
+                                submit="submitValue"
+                                change="submitValue"
+                                valueHelpRequest=".onValueHelpDialogEquipment"
+                                valueStateText="{i18n>equipment} {i18n>requiredField}"
+                                value="{AppJsonModel>/DefectInfo/Equipment}"
+                                required="true"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox>
+
+                        <!-- REPAIR CODE -->
+                        <VBox>
+                            <Label
+                                text="{i18n>repairCode}"
+                                required="true"
+                                labelFor="RepairCode"
+                            />
+                            <Input
+                                id="RepairCode"
+                                name="RepairCode"
+                                showValueHelp="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                                valueStateText="{i18n>repairCode} {i18n>requiredField}"
+                                required="true"
+                                change="onInputChange"
+                                submit="submitValue"
+                                maxLength="4"
+                                value="{AppJsonModel>/DefectInfo/RepairCode}"
+                                liveChange="onLiveChange"
+                            />
+                        </VBox>
+
+                        <!-- MATERIAL -->
+                        <VBox>
+                            <Label
+                                text="{i18n>material}"
+                                required="true"
+                                labelFor="Material"
+                            />
+                            <Input
+                                id="Material"
+                                name="Material"
+                                showValueHelp="true"
+                                showSuggestion="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                                valueStateText="{i18n>material} {i18n>requiredField}"
+                                required="true"
+                                change="onInputChange"
+                                submit="submitValue"
+                                value="{AppJsonModel>/DefectInfo/Material}"
+                                enabled="{AppJsonModel>/Enabled/Material}"
+                                liveChange="onLiveChange"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox>
+
+                        <!-- ELMENT CODE -->
+                        <VBox>
+                            <FlexBox direction="Column">
+                                <Label
+                                    text="{i18n>elementCode}"
+                                    required="true"
+                                    labelFor="DlCode"
+                                />
+                                <FlexBox>
+                                    <Input
+                                        id="DlCodegruppe"
+                                        name="DlCodegruppe"
+                                        showSuggestion="true"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        value="DEF-LOC"
+                                        enabled="false"
+                                        required="true"
+                                    />
+                                    <Input
+                                        id="ElementCode"
+                                        name="ElementCode"
+                                        showSuggestion="true"
+                                        showValueHelp="true"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        valueStateText="{i18n>elementCode} {i18n>requiredField}"
+                                        value="{AppJsonModel>/DefectInfo/ElementCode}"
+                                        required="true"
+                                        change="onInputChange"
+                                        submit="submitValue"
+                                        maxLength="4"
+                                        liveChange="onLiveChange"
+                                    >
+                                        <suggestionItems>
+                                            <core:Item text="{Name}" />
+                                        </suggestionItems>
+                                    </Input>
+                                </FlexBox>
+                            </FlexBox>
+                        </VBox>
+
+                        <!-- QUANTITY -->
+                        <VBox>
+                            <FlexBox>
+                                <FlexBox direction="Column">
+                                    <Label
+                                        text="{i18n>quantity}"
+                                        required="true"
+                                        labelFor="Quantity"
+                                    />
+                                    <Input
+                                        id="Quantity"
+                                        name="Quantity"
+                                        showSuggestion="true"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        valueStateText="{i18n>quantity} {i18n>requiredField}"
+                                        width="100%"
+                                        required="true"
+                                        change="onInputChange"
+                                        submit="submitValueQuantity"
+                                        type="Number"
+                                        value="{AppJsonModel>/DefectInfo/Quantity}"
+                                    />
+                                </FlexBox>
+                                <FlexBox direction="Column">
+                                    <Label text="{i18n>uom}" />
+                                    <Input
+                                        id="UoM"
+                                        name="UoM"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        required="true"
+                                        value="{AppJsonModel>/DefectInfo/UnitOfMeasure}"
+                                        enabled="false"
+                                    />
+                                </FlexBox>
+                            </FlexBox>
+                        </VBox>
+
+                        <!-- PRODUCTION ORDER -->
+                        <VBox>
+                            <Label
+                                text="{i18n>productionOrder}"
+                                required="true"
+                                labelFor="ProductionOrder"
+                            />
+                            <Input
+                                id="ProductionOrder"
+                                name="ProductionOrder"
+                                showSuggestion="true"
+                                showValueHelp="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                                valueStateText="{i18n>productionOrder} {i18n>requiredField}"
+                                required="true"
+                                change="onInputChange"
+                                submit="submitValue"
+                                value="{AppJsonModel>/DefectInfo/ProductionOrder}"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox>
+
+                        <!-- DEFECT CODE -->
+                        <VBox>
+                            <FlexBox direction="Column">
+                                <Label
+                                    text="{i18n>defectCode}"
+                                    required="true"
+                                    labelFor="DCode"
+                                />
+                                <FlexBox>
+                                    <Input
+                                        id="DCodegruppe"
+                                        name="DCodegruppe"
+                                        showSuggestion="true"
+                                        value="DEF-GEN"
+                                        enabled="false"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        required="true"
+                                    />
+                                    <Input
+                                        id="DefectCode"
+                                        name="DefectCode"
+                                        showSuggestion="true"
+                                        showValueHelp="true"
+                                        valueHelpRequest=".onValueHelpRequest"
+                                        valueStateText="{i18n>defectCode} {i18n>requiredField}"
+                                        value="{AppJsonModel>/DefectInfo/DefectCode}"
+                                        required="true"
+                                        change="onInputChange"
+                                        submit="submitValue"
+                                        maxLength="4"
+                                    >
+                                        <suggestionItems>
+                                            <core:Item text="{Name}" />
+                                        </suggestionItems>
+                                    </Input>
+                                </FlexBox>
+                            </FlexBox>
+                        </VBox>
+
+                        <!-- SERIAL NUMBER -->
+                        <VBox>
+                            <Label
+                                text="{i18n>serialNumber}"
+                                labelFor="SerialNumber"
+                            />
+                            <Input
+                                id="SerialNumber"
+                                name="SerialNumber"
+                                showValueHelp="{AppJsonModel>/Editable/ValueHelpSerialNumber}"
+                                change="onInputChange"
+                                submit="submitValue"
+                                valueHelpRequest=".onValueHelpRequest"
+                                value="{AppJsonModel>/DefectInfo/SerialNumber}"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox>
+
+                        <VBox />
+                        <VBox />
+                        <!-- CHECK -->
+                        <VBox>
+                            <CheckBox
+                                id="moveStock"
+                                text="{i18n>moveStock}"
+                                select="onCheck"
+                                selected="true"
+                            />
+                        </VBox>
+                    </l:Grid>
+                </content>
+            </Panel>
+
+            <!-- BOM MATERIALS TABLE -->
+            <Panel
+                headerText="{i18n>boomMaterials}"
+                class="sapUiSmallMarginTop"
+            >
+                <Table
+                    id="bomTable"
+                    fixedLayout="Strict"
+                    autoPopinMode="true"
+                    contextualWidth="Auto"
+                    growing="true"
+                    items="{path: 'boomData>/'}"
+                    noDataText="{i18n>noData}"
+                >
+                    <dependents>
+                        <plugins:ColumnResizer />
+                    </dependents>
+                    <columns>
+                        <Column width="12em">
+                            <Text text="{i18n>material}" />
+                        </Column>
+                        <Column width="150px">
+                            <Text text="{i18n>quantity}" />
+                        </Column>
+                        <Column
+                            width="25%"
+                            hAlign="End"
+                        >
+                            <Text text="{i18n>supplierBatch}" />
+                        </Column>
+                        <Column>
+                            <Text text="{i18n>compUnit}" />
+                        </Column>
+                        <Column>
+                            <Text text="{i18n>message}" />
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem vAlign="Middle">
+                            <cells>
+                                <ObjectIdentifier
+                                    title="{Name}"
+                                    text="{boomData>Component}"
+                                    class="sapUiTinyMarginTopBottom"
+                                />
+                                <Text text="{boomData>CompQty}" />
+                                <Text text="{boomData>Charg}" />
+                                <Text text="{boomData>CompUnit}" />
+                                <Text text="{boomData>Message}" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </Panel>
+        </content>
+        <footer>
+            <OverflowToolbar>
+                <Button
+                    id="messagePopoverBtn"
+                    icon="sap-icon://notification-2"
+                    text="{popoverModel>/messageLength}"
+                    type="{popoverModel>/type}"
+                    press=".handleMessagePopoverPress"
+                    ariaHasPopup="Dialog"
+                />
+                <ToolbarSpacer />
+                <Button
+                    id="saveAndDupBtn"
+                    text="{i18n>saveAndDuplicate}"
+                    press=".onPressSave"
+                    tooltip="{i18n>saveAndDuplicate}"
+                    enabled="{AppJsonModel>/Enabled/SaveBtn}"
+                />
+                <Button
+                    id="saveBtn"
+                    text="{i18n>save}"
+                    press=".onPressSave"
+                    tooltip="{i18n>save}"
+                    enabled="{AppJsonModel>/Enabled/SaveBtn}"
+                />
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>
