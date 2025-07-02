@@ -158,6 +158,7 @@ sap.ui.define([
                         // }
 
                         AppJsonModel.setProperty('/WorkCenters', workCenters);
+                        this.checkEquipment();
                     }).catch(err => {
                         console.log(err);
                     })
