@@ -93,7 +93,7 @@ sap.ui.define([
                             plantInput.setShowValueHelp(false);
                             plantInput.setEditable(false);
 
-                            this.checkEquipment();
+                            // this.checkEquipment();
                             return;
                         }
 
@@ -111,7 +111,7 @@ sap.ui.define([
                             plantInput.setShowValueHelp(false);
                             plantInput.setEditable(false);
 
-                            this.checkEquipment();
+                            // this.checkEquipment();
                             return;
                         }
 
@@ -1316,54 +1316,54 @@ sap.ui.define([
                 }
             },
 
-            checkEquipment: function () {
-                const equipmentInput = this.byId('Equipment');
-                const currPlant = AppJsonModel.getProperty('/DefectInfo').Plant;
-                const currWorkcenter = AppJsonModel.getProperty('/DefectInfo').WorkCenter;
-                const oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
+            // checkEquipment: function () {
+            //     const equipmentInput = this.byId('Equipment');
+            //     const currPlant = AppJsonModel.getProperty('/DefectInfo').Plant;
+            //     const currWorkcenter = AppJsonModel.getProperty('/DefectInfo').WorkCenter;
+            //     const oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
 
-                let equipments = AppJsonModel.getProperty('/Equipments');
-                MatchcodesService.callGetService('/MatchCodeEquipment', oFilter).then(data => {
-                    const response = data.results;
+            //     let equipments = AppJsonModel.getProperty('/Equipments');
+            //     MatchcodesService.callGetService('/MatchCodeEquipment', oFilter).then(data => {
+            //         const response = data.results;
 
-                    if (response.length > 1) {
+            //         if (response.length > 1) {
 
-                        equipments = [];
-                        response.forEach(eq => {
-                            equipments.push({
-                                Description: `${eq.Description}`,
-                                Equipment: `${eq.Equipment}`,
-                                Plant: `${eq.Plant}`,
-                                SortField: `${eq.SortField}`,
-                                WorkCenter: `${eq.WorkCenter}`
-                            })
-                        })
+            //             equipments = [];
+            //             response.forEach(eq => {
+            //                 equipments.push({
+            //                     Description: `${eq.Description}`,
+            //                     Equipment: `${eq.Equipment}`,
+            //                     Plant: `${eq.Plant}`,
+            //                     SortField: `${eq.SortField}`,
+            //                     WorkCenter: `${eq.WorkCenter}`
+            //                 })
+            //             })
 
-                        AppJsonModel.setProperty('/Equipments', equipments);
-                        equipmentInput.setValue('');
-                        equipmentInput.setEditable(true);
-                        equipmentInput.setShowValueHelp(true);
-                        return;
-                    }
+            //             AppJsonModel.setProperty('/Equipments', equipments);
+            //             equipmentInput.setValue('');
+            //             equipmentInput.setEditable(true);
+            //             equipmentInput.setShowValueHelp(true);
+            //             return;
+            //         }
 
-                    if (response.length === 1) {
-                        equipmentInput.setValue(response[0].Equipment);
-                        equipmentInput.setValueState('None');
-                        equipmentInput.setEditable(false);
-                        equipmentInput.setShowValueHelp(false);
-                        return;
-                    }
+            //         if (response.length === 1) {
+            //             equipmentInput.setValue(response[0].Equipment);
+            //             equipmentInput.setValueState('None');
+            //             equipmentInput.setEditable(false);
+            //             equipmentInput.setShowValueHelp(false);
+            //             return;
+            //         }
 
-                    if (response.length === 0) {
-                        AppJsonModel.setProperty('/Equipments', []);
-                        equipmentInput.setValueState('None');
-                        equipmentInput.setValue('');
-                        equipmentInput.setEditable(true);
-                        equipmentInput.setShowValueHelp(true);
-                        return;
-                    }
-                })
-            },
+            //         if (response.length === 0) {
+            //             AppJsonModel.setProperty('/Equipments', []);
+            //             equipmentInput.setValueState('None');
+            //             equipmentInput.setValue('');
+            //             equipmentInput.setEditable(true);
+            //             equipmentInput.setShowValueHelp(true);
+            //             return;
+            //         }
+            //     })
+            // },
 
             onInputChange: function (oEvent) {
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
