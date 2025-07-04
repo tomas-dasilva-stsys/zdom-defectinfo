@@ -371,6 +371,7 @@
                                 text="{i18n>moveStock}"
                                 select="onCheck"
                                 selected="true"
+                                editable="false"
                             />
                         </VBox>
                     </l:Grid>

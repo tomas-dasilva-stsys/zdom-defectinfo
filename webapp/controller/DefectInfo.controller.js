@@ -1461,7 +1461,7 @@ sap.ui.define([
                     return;
                 }
 
-                if ((!emptyInputs && boomMessages.length === 0) || (!emptyInputs && boomMessages.length > 0 && !stockChecked && equipmentStateError !== 'Error')) {
+                if ((!emptyInputs && boomMessages.length === 0) || (!emptyInputs && boomMessages.length > 0 &&  equipmentStateError !== 'Error')) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
                     return;
                 }
