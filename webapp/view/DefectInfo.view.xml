@@ -99,6 +99,7 @@
                                 </Input>
                             </FlexBox>
                         </VBox>
+                        
 
                         <!-- WORKCENTER  -->
                         <VBox>
@@ -173,32 +174,30 @@
                             />
                         </VBox>
 
-                        <!-- MATERIAL -->
+                        <!-- PRODUCTION ORDER -->
                         <VBox>
                             <Label
-                                text="{i18n>material}"
+                                text="{i18n>productionOrder}"
                                 required="true"
-                                labelFor="Material"
+                                labelFor="ProductionOrder"
                             />
                             <Input
-                                id="Material"
-                                name="Material"
-                                showValueHelp="true"
+                                id="ProductionOrder"
+                                name="ProductionOrder"
                                 showSuggestion="true"
+                                showValueHelp="true"
                                 valueHelpRequest=".onValueHelpRequest"
-                                valueStateText="{i18n>material} {i18n>requiredField}"
+                                valueStateText="{i18n>productionOrder} {i18n>requiredField}"
                                 required="true"
                                 change="onInputChange"
                                 submit="submitValue"
-                                value="{AppJsonModel>/DefectInfo/Material}"
-                                enabled="{AppJsonModel>/Enabled/Material}"
-                                liveChange="onLiveChange"
+                                value="{AppJsonModel>/DefectInfo/ProductionOrder}"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
                                 </suggestionItems>
                             </Input>
-                        </VBox>
+                        </VBox>                        
 
                         <!-- ELMENT CODE -->
                         <VBox>
@@ -277,24 +276,26 @@
                             </FlexBox>
                         </VBox>
 
-                        <!-- PRODUCTION ORDER -->
+                        <!-- MATERIAL -->
                         <VBox>
                             <Label
-                                text="{i18n>productionOrder}"
+                                text="{i18n>material}"
                                 required="true"
-                                labelFor="ProductionOrder"
+                                labelFor="Material"
                             />
                             <Input
-                                id="ProductionOrder"
-                                name="ProductionOrder"
-                                showSuggestion="true"
+                                id="Material"
+                                name="Material"
                                 showValueHelp="true"
+                                showSuggestion="true"
                                 valueHelpRequest=".onValueHelpRequest"
-                                valueStateText="{i18n>productionOrder} {i18n>requiredField}"
+                                valueStateText="{i18n>material} {i18n>requiredField}"
                                 required="true"
                                 change="onInputChange"
                                 submit="submitValue"
-                                value="{AppJsonModel>/DefectInfo/ProductionOrder}"
+                                value="{AppJsonModel>/DefectInfo/Material}"
+                                enabled="{AppJsonModel>/Enabled/Material}"
+                                liveChange="onLiveChange"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
