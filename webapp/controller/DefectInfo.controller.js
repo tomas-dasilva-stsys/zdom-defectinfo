@@ -35,6 +35,8 @@ sap.ui.define([
         return Controller.extend("zdom.zdom.controller.DefectInfo", {
             oFragments: {},
 
+            // comentario de test
+
             onInit: function () {
                 AppJsonModel.initializeModel();
                 let sLocale = sap.ui.getCore().getConfiguration().getLanguage();
