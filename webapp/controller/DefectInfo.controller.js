@@ -1458,13 +1458,28 @@ sap.ui.define([
                         emptyInputs++;
                     }
                 }
+                //Grisa "Save" cuando se ingresa Rapid error
+                let sProductionOrder = AppJsonModel.getProperty('/DefectInfo/ProductionOrder');
+                let sPatch = "/ZfmGetBomSet('" + sProductionOrder + "')";
+                let obomTable = this.byId("bomTable").getModel();
+                
+                if (obomTable) {
+                    let aLine = obomTable.getProperty(sPatch);
 
+                    if (aLine) {
+                        if (aLine.Message) {
+                            AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                            return;
+                        }
+                    }
+                }
+                //fin
                 if (equipmentStateError === 'Error') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
                 }
 
-                if ((!emptyInputs && boomMessages.length === 0) || (!emptyInputs && boomMessages.length > 0 &&  equipmentStateError !== 'Error')) {
+                if ((!emptyInputs && boomMessages.length === 0) || (!emptyInputs && boomMessages.length > 0 && equipmentStateError !== 'Error')) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
                     return;
                 }
