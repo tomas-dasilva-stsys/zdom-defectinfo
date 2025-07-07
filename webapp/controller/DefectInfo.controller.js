@@ -726,6 +726,8 @@ sap.ui.define([
                     let currWorkcenter = oEvent.getParameter("tokens")[0].getCustomData()[0].getValue().WorkCenter;
                     AppJsonModel.setInnerProperty('/DefectInfo', "WorkCenter", currWorkcenter);
                     AppJsonModel.setInnerProperty('/DefectInfo', "ProductionOrder", '');
+                    AppJsonModel.setInnerProperty('/DefectInfo', "Material", '');
+                    AppJsonModel.setInnerProperty('/Enabled', "Material", true);
                     this.byId(inputId).setValueState("None");
                     this.onExitDialog();
 
