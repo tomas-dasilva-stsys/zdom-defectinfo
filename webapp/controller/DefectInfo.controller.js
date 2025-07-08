@@ -707,6 +707,8 @@ sap.ui.define([
 
                     if (!needSerialNumber) {
                         AppJsonModel.setInnerProperty('/Editable', "ValueHelpSerialNumber", false);
+                    } else {
+                        AppJsonModel.setInnerProperty('/Editable', "ValueHelpSerialNumber", true);
                     }
 
                     if (currMatr) {
@@ -1459,19 +1461,35 @@ sap.ui.define([
                     }
                 }
                 //Grisa "Save" cuando se ingresa Rapid error
-                let sProductionOrder = AppJsonModel.getProperty('/DefectInfo/ProductionOrder');
-                let sPatch = "/ZfmGetBomSet('" + sProductionOrder + "')";
-                let obomTable = this.byId("bomTable").getModel();
-                
-                if (obomTable) {
-                    let aLine = obomTable.getProperty(sPatch);
+                // let sProductionOrder = AppJsonModel.getProperty('/DefectInfo/ProductionOrder');
+                // //let sPatch = "/ZfmGetBomSet('" + sProductionOrder + "')";
+                // let obomTable = this.byId("bomTable").getModel();
 
-                    if (aLine) {
-                        if (aLine.Message) {
-                            AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                            return;
-                        }
-                    }
+                // if (obomTable) {
+                //     let oItems = this.byId("bomTable").getBinding("items");
+                //     let sCant = oItems.getLength();
+                //     let sError = false;
+                //     if (sCant > 0) {
+
+                //         for (let i = 0; i < oItems.getLength(); i++) {
+                //             let sIndex = "/" + i;
+                //             if (oItems.getModel().getProperty(sIndex).Message.length > 0) {
+                //                 let sError = true;
+                //             }
+                //         }
+
+                //         if (sError == true) {
+                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                //             return;
+                //         } else {
+                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
+                //             return;
+                //         }
+                //     }
+                // }
+                if ( boomMessages.length > 0) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    return;
                 }
                 //fin
                 if (equipmentStateError === 'Error') {
