@@ -95,7 +95,7 @@ sap.ui.define([
                             plantInput.setShowValueHelp(false);
                             plantInput.setEditable(false);
 
-                            // this.checkEquipment();
+                            this.checkEquipment();
                             return;
                         }
 
@@ -113,7 +113,7 @@ sap.ui.define([
                             plantInput.setShowValueHelp(false);
                             plantInput.setEditable(false);
 
-                            // this.checkEquipment();
+                            this.checkEquipment();
                             return;
                         }
 
@@ -160,7 +160,7 @@ sap.ui.define([
                         // }
 
                         AppJsonModel.setProperty('/WorkCenters', workCenters);
-                        // this.checkEquipment();
+                        this.checkEquipment();
                     }).catch(err => {
                         console.log(err);
                     })
@@ -235,7 +235,9 @@ sap.ui.define([
 
                     case 'Equipment':
                         aFilter.push(new Filter('Plant', FilterOperator.EQ, defectInfo.Plant));
-                        // aFilter.push(new Filter("WorkCenter", FilterOperator.EQ, defectInfo.WorkCenter));
+                        if (defectInfo.WorkCenter) {
+                            aFilter.push(new Filter("WorkCenter", FilterOperator.EQ, defectInfo.WorkCenter));
+                        }
                         return aFilter;
 
                     case 'ProductionOrder':
@@ -553,142 +555,146 @@ sap.ui.define([
                 inputId = currentInputId;
 
                 // LOGIC TO FILTER EQUIPMENT BY WORKCENTER
-                // if (equipments.length > 0) {
-                //     this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                //         oFragment.getTableAsync().then(function (oTable) {
-                //             let tableCols = AppJsonModel.getProperty("/Equipment");
-                //             let currentJsonModel = new JSONModel({
-                //                 "cols": tableCols
-                //             })
+                if (equipments.length > 0) {
+                    this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                        oFragment.getTableAsync().then(function (oTable) {
+                            let tableCols = AppJsonModel.getProperty("/Equipment");
+                            let currentJsonModel = new JSONModel({
+                                "cols": tableCols
+                            })
 
-                //             oTable.setModel(currentJsonModel, "columns");
+                            oTable.setModel(currentJsonModel, "columns");
 
-                //             let equipmentsModel = new JSONModel({
-                //                 items: equipments
-                //             })
+                            let equipmentsModel = new JSONModel({
+                                items: equipments
+                            })
 
-                //             oTable.setModel(equipmentsModel);
+                            oTable.setModel(equipmentsModel);
 
-                //             if (oTable.bindRows) {
-                //                 oTable.bindAggregation("rows", {
-                //                     path: "/items",
-                //                     showHeader: false
-                //                 });
-                //             }
+                            if (oTable.bindRows) {
+                                oTable.bindAggregation("rows", {
+                                    path: "/items",
+                                    showHeader: false
+                                });
+                            }
 
-                //             oFragment.update();
+                            oFragment.update();
 
-                //         });
-                //         oFragment.open();
-                //     })
-                // }
+                        });
+                        oFragment.open();
+                    })
+                }
 
-                // if (equipments.length === 0) {
-                //     let equipmentPath = this.getCurrentSpath(inputId);
-                //     let oFilters = this.getCurrentFilter('Equipment');
+                if (equipments.length === 0) {
+                    let equipmentPath = this.getCurrentSpath(inputId);
+                    let oFilters = this.getCurrentFilter('Equipment');
 
-                //     MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
-                //         const response = data.results;
+                    MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
+                        const response = data.results;
 
-                //         if (response.length === 0) {
-                //             this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                //                 oFragment.getTableAsync().then(function (oTable) {
-                //                     oTable.setModel(MatchcodesService.getOdataModel());
-                //                     let tableCols = AppJsonModel.getProperty("/Equipment");
-                //                     let currentJsonModel = new JSONModel({
-                //                         "cols": tableCols
-                //                     })
+                        if (response.length === 0) {
+                            let defectInfo = AppJsonModel.getProperty('/DefectInfo');
+                            oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant)];
 
-                //                     oTable.setModel(currentJsonModel, "columns");
+                            this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                                oFragment.getTableAsync().then(function (oTable) {
+                                    oTable.setModel(MatchcodesService.getOdataModel());
+                                    let tableCols = AppJsonModel.getProperty("/Equipment");
+                                    let currentJsonModel = new JSONModel({
+                                        "cols": tableCols
+                                    })
 
-                //                     if (oTable.bindRows) {
-                //                         oTable.bindAggregation("rows", {
-                //                             path: `${equipmentPath.path}`,
-                //                             showHeader: false
-                //                         });
-                //                     }
-                //                     oFragment.update();
-                //                 });
-                //                 oFragment.open();
-                //             })
-                //         } else if (response.length > 0) {
-                //             this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                //                 oFragment.getTableAsync().then(function (oTable) {
-                //                     oTable.setModel(MatchcodesService.getOdataModel());
-                //                     let tableCols = AppJsonModel.getProperty("/Equipment");
-                //                     let currentJsonModel = new JSONModel({
-                //                         "cols": tableCols
-                //                     })
+                                    oTable.setModel(currentJsonModel, "columns");
 
-                //                     oTable.setModel(currentJsonModel, "columns");
+                                    if (oTable.bindRows) {
+                                        oTable.bindAggregation("rows", {
+                                            path: `${equipmentPath.path}`,
+                                            filters: oFilters,
+                                            showHeader: false
+                                        });
+                                    }
+                                    oFragment.update();
+                                });
+                                oFragment.open();
+                            })
+                        } else if (response.length > 0) {
+                            this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                                oFragment.getTableAsync().then(function (oTable) {
+                                    oTable.setModel(MatchcodesService.getOdataModel());
+                                    let tableCols = AppJsonModel.getProperty("/Equipment");
+                                    let currentJsonModel = new JSONModel({
+                                        "cols": tableCols
+                                    })
 
-                //                     if (oTable.bindRows) {
-                //                         oTable.bindAggregation("rows", {
-                //                             path: `${equipmentPath.path}`,
-                //                             filters: oFilters,
-                //                             showHeader: false
-                //                         });
-                //                     }
+                                    oTable.setModel(currentJsonModel, "columns");
 
-                //                     oFragment.update();
+                                    if (oTable.bindRows) {
+                                        oTable.bindAggregation("rows", {
+                                            path: `${equipmentPath.path}`,
+                                            filters: oFilters,
+                                            showHeader: false
+                                        });
+                                    }
 
-                //                 });
-                //                 oFragment.open();
-                //             })
-                //         }
-                //     })
-                // }
+                                    oFragment.update();
 
-                let equipmentPath = this.getCurrentSpath(inputId);
-                let oFilters = this.getCurrentFilter('Equipment');
-                MatchcodesService.callGetService(`${equipmentPath.path}`, oFilters).then(data => {
-                    const response = data.results;
+                                });
+                                oFragment.open();
+                            })
+                        }
+                    })
+                }
 
-                    if (response.length === 0) {
-                        this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                            oFragment.getTableAsync().then(function (oTable) {
-                                oTable.setModel(MatchcodesService.getOdataModel());
-                                let tableCols = AppJsonModel.getProperty("/Equipment");
-                                let currentJsonModel = new JSONModel({
-                                    "cols": tableCols
-                                })
+                // let equipmentPath = this.getCurrentSpath(inputId);
+                // let oFilters = this.getCurrentFilter('Equipment');
+                // MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
+                //     const response = data.results;
 
-                                oTable.setModel(currentJsonModel, "columns");
+                //     if (response.length === 0) {
+                //         this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                //             oFragment.getTableAsync().then(function (oTable) {
+                //                 oTable.setModel(MatchcodesService.getOdataModel());
+                //                 let tableCols = AppJsonModel.getProperty("/Equipment");
+                //                 let currentJsonModel = new JSONModel({
+                //                     "cols": tableCols
+                //                 })
 
-                                if (oTable.bindRows) {
-                                    oTable.bindAggregation("rows", {
-                                        path: `${equipmentPath.path}`,
-                                        showHeader: false
-                                    });
-                                }
-                                oFragment.update();
-                            });
-                            oFragment.open();
-                        })
-                    } else if (response.length > 0) {
-                        this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                            oFragment.getTableAsync().then(function (oTable) {
-                                oTable.setModel(MatchcodesService.getOdataModel());
-                                let tableCols = AppJsonModel.getProperty("/Equipment");
-                                let currentJsonModel = new JSONModel({
-                                    "cols": tableCols
-                                })
+                //                 oTable.setModel(currentJsonModel, "columns");
 
-                                oTable.setModel(currentJsonModel, "columns");
+                //                 if (oTable.bindRows) {
+                //                     oTable.bindAggregation("rows", {
+                //                         path: `${equipmentPath.path}`,
+                //                         showHeader: false
+                //                     });
+                //                 }
+                //                 oFragment.update();
+                //             });
+                //             oFragment.open();
+                //         })
+                //     } else if (response.length > 0) {
+                //         this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                //             oFragment.getTableAsync().then(function (oTable) {
+                //                 oTable.setModel(MatchcodesService.getOdataModel());
+                //                 let tableCols = AppJsonModel.getProperty("/Equipment");
+                //                 let currentJsonModel = new JSONModel({
+                //                     "cols": tableCols
+                //                 })
 
-                                if (oTable.bindRows) {
-                                    oTable.bindAggregation("rows", {
-                                        path: `${equipmentPath.path}`,
-                                        filters: oFilters,
-                                        showHeader: false
-                                    });
-                                }
-                                oFragment.update();
-                            });
-                            oFragment.open();
-                        })
-                    }
-                })
+                //                 oTable.setModel(currentJsonModel, "columns");
+
+                //                 if (oTable.bindRows) {
+                //                     oTable.bindAggregation("rows", {
+                //                         path: `${equipmentPath.path}`,
+                //                         filters: oFilters,
+                //                         showHeader: false
+                //                     });
+                //                 }
+                //                 oFragment.update();
+                //             });
+                //             oFragment.open();
+                //         })
+                //     }
+                // })
             },
 
             onExitDialog: function () {
@@ -736,7 +742,7 @@ sap.ui.define([
                     this.onExitDialog();
 
                     // FUNCTION TO AUTOCOMPLETE EQUIPMENT
-                    // this.checkEquipment();
+                    this.checkEquipment();
 
                     return;
                 }
@@ -1323,54 +1329,54 @@ sap.ui.define([
                 }
             },
 
-            // checkEquipment: function () {
-            //     const equipmentInput = this.byId('Equipment');
-            //     const currPlant = AppJsonModel.getProperty('/DefectInfo').Plant;
-            //     const currWorkcenter = AppJsonModel.getProperty('/DefectInfo').WorkCenter;
-            //     const oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
+            checkEquipment: function () {
+                const equipmentInput = this.byId('Equipment');
+                const currPlant = AppJsonModel.getProperty('/DefectInfo').Plant;
+                const currWorkcenter = AppJsonModel.getProperty('/DefectInfo').WorkCenter;
+                const oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
 
-            //     let equipments = AppJsonModel.getProperty('/Equipments');
-            //     MatchcodesService.callGetService('/MatchCodeEquipment', oFilter).then(data => {
-            //         const response = data.results;
+                let equipments = AppJsonModel.getProperty('/Equipments');
+                MatchcodesService.callGetService('/MatchCodeEquipment', oFilter).then(data => {
+                    const response = data.results;
 
-            //         if (response.length > 1) {
+                    if (response.length > 1) {
 
-            //             equipments = [];
-            //             response.forEach(eq => {
-            //                 equipments.push({
-            //                     Description: `${eq.Description}`,
-            //                     Equipment: `${eq.Equipment}`,
-            //                     Plant: `${eq.Plant}`,
-            //                     SortField: `${eq.SortField}`,
-            //                     WorkCenter: `${eq.WorkCenter}`
-            //                 })
-            //             })
+                        equipments = [];
+                        response.forEach(eq => {
+                            equipments.push({
+                                Description: `${eq.Description}`,
+                                Equipment: `${eq.Equipment}`,
+                                Plant: `${eq.Plant}`,
+                                SortField: `${eq.SortField}`,
+                                WorkCenter: `${eq.WorkCenter}`
+                            })
+                        })
 
-            //             AppJsonModel.setProperty('/Equipments', equipments);
-            //             equipmentInput.setValue('');
-            //             equipmentInput.setEditable(true);
-            //             equipmentInput.setShowValueHelp(true);
-            //             return;
-            //         }
+                        AppJsonModel.setProperty('/Equipments', equipments);
+                        equipmentInput.setValue('');
+                        equipmentInput.setEditable(true);
+                        equipmentInput.setShowValueHelp(true);
+                        return;
+                    }
 
-            //         if (response.length === 1) {
-            //             equipmentInput.setValue(response[0].Equipment);
-            //             equipmentInput.setValueState('None');
-            //             equipmentInput.setEditable(false);
-            //             equipmentInput.setShowValueHelp(false);
-            //             return;
-            //         }
+                    if (response.length === 1) {
+                        equipmentInput.setValue(response[0].Equipment);
+                        equipmentInput.setValueState('None');
+                        equipmentInput.setEditable(false);
+                        equipmentInput.setShowValueHelp(false);
+                        return;
+                    }
 
-            //         if (response.length === 0) {
-            //             AppJsonModel.setProperty('/Equipments', []);
-            //             equipmentInput.setValueState('None');
-            //             equipmentInput.setValue('');
-            //             equipmentInput.setEditable(true);
-            //             equipmentInput.setShowValueHelp(true);
-            //             return;
-            //         }
-            //     })
-            // },
+                    if (response.length === 0) {
+                        AppJsonModel.setProperty('/Equipments', []);
+                        equipmentInput.setValueState('None');
+                        equipmentInput.setValue('');
+                        equipmentInput.setEditable(true);
+                        equipmentInput.setShowValueHelp(true);
+                        return;
+                    }
+                })
+            },
 
             onInputChange: function (oEvent) {
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
@@ -1417,7 +1423,7 @@ sap.ui.define([
                     this.byId(currId).setValueState("None");
 
                     // FUNCTION TO AUTOCOMPLETE EQUIPMENT
-                    // this.checkEquipment();
+                    this.checkEquipment();
                     return;
                 }
 
@@ -1489,7 +1495,7 @@ sap.ui.define([
                 //         }
                 //     }
                 // }
-                if ( boomMessages.length > 0) {
+                if (boomMessages.length > 0) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
                 }
