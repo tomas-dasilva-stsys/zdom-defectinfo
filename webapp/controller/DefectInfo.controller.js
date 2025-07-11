@@ -548,9 +548,9 @@ sap.ui.define([
 
             onValueHelpDialogEquipment: function (oEvent) {
                 let currentInputId = oEvent.getSource().getId().split('--').at(-1);
-
                 let currentData = AppJsonModel.getProperty('/DefectInfo');
                 let equipments = AppJsonModel.getProperty('/Equipments');
+                let equipmentInput = this.byId('Equipment');
 
                 inputId = currentInputId;
 
@@ -558,7 +558,7 @@ sap.ui.define([
                 if (equipments.length > 0) {
                     this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
                         oFragment.getTableAsync().then(function (oTable) {
-                            let tableCols = AppJsonModel.getProperty("/Equipment");
+                            let tableCols = equipments[0].WorkCenter ? AppJsonModel.getProperty("/Equipment") : AppJsonModel.getProperty("/Equipment2");
                             let currentJsonModel = new JSONModel({
                                 "cols": tableCols
                             })
@@ -594,28 +594,32 @@ sap.ui.define([
 
                         if (response.length === 0) {
                             let defectInfo = AppJsonModel.getProperty('/DefectInfo');
-                            oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant)];
+                            oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant), new Filter('WorkCenterL2', FilterOperator.EQ, defectInfo.WorkCenter)];
 
-                            this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                                oFragment.getTableAsync().then(function (oTable) {
-                                    oTable.setModel(MatchcodesService.getOdataModel());
-                                    let tableCols = AppJsonModel.getProperty("/Equipment");
-                                    let currentJsonModel = new JSONModel({
-                                        "cols": tableCols
-                                    })
-
-                                    oTable.setModel(currentJsonModel, "columns");
-
-                                    if (oTable.bindRows) {
-                                        oTable.bindAggregation("rows", {
-                                            path: `${equipmentPath.path}`,
-                                            filters: oFilters,
-                                            showHeader: false
-                                        });
-                                    }
-                                    oFragment.update();
-                                });
-                                oFragment.open();
+                            MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
+                                // const response = data.results;
+                                
+                                this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                                    oFragment.getTableAsync().then(function (oTable) {
+                                        oTable.setModel(MatchcodesService.getOdataModel());
+                                        let tableCols = AppJsonModel.getProperty("/Equipment2");
+                                        let currentJsonModel = new JSONModel({
+                                            "cols": tableCols
+                                        })
+    
+                                        oTable.setModel(currentJsonModel, "columns");
+    
+                                        if (oTable.bindRows) {
+                                            oTable.bindAggregation("rows", {
+                                                path: `${equipmentPath.path}`,
+                                                filters: oFilters,
+                                                showHeader: false
+                                            });
+                                        }
+                                        oFragment.update();
+                                    });
+                                    oFragment.open();
+                                })
                             })
                         } else if (response.length > 0) {
                             this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
@@ -644,7 +648,6 @@ sap.ui.define([
                         }
                     })
                 }
-
                 // let equipmentPath = this.getCurrentSpath(inputId);
                 // let oFilters = this.getCurrentFilter('Equipment');
                 // MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
@@ -1333,7 +1336,8 @@ sap.ui.define([
                 const equipmentInput = this.byId('Equipment');
                 const currPlant = AppJsonModel.getProperty('/DefectInfo').Plant;
                 const currWorkcenter = AppJsonModel.getProperty('/DefectInfo').WorkCenter;
-                const oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
+
+                let oFilter = [new Filter('Plant', FilterOperator.EQ, currPlant), new Filter('WorkCenter', FilterOperator.EQ, currWorkcenter)];
 
                 let equipments = AppJsonModel.getProperty('/Equipments');
                 MatchcodesService.callGetService('/MatchCodeEquipment', oFilter).then(data => {
@@ -1368,12 +1372,50 @@ sap.ui.define([
                     }
 
                     if (response.length === 0) {
-                        AppJsonModel.setProperty('/Equipments', []);
-                        equipmentInput.setValueState('None');
-                        equipmentInput.setValue('');
-                        equipmentInput.setEditable(true);
-                        equipmentInput.setShowValueHelp(true);
-                        return;
+                        let defectInfo = AppJsonModel.getProperty('/DefectInfo');
+                        oFilter = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant), new Filter('WorkCenterL2', FilterOperator.EQ, defectInfo.WorkCenter)];
+
+                        MatchcodesService.callGetService('/MatchCodeEquipment', [oFilter]).then(data => {
+                            const response = data.results;
+
+                            if (response.length === 0) {
+                                AppJsonModel.setProperty('/Equipments', []);
+                                equipmentInput.setValueState('None');
+                                equipmentInput.setValue('');
+                                equipmentInput.setEditable(true);
+                                equipmentInput.setShowValueHelp(true);
+                                return;
+                            }
+
+                            if (response.length === 1) {
+                                equipmentInput.setValue(response[0].Equipment);
+                                equipmentInput.setValueState('None');
+                                equipmentInput.setEditable(false);
+                                equipmentInput.setShowValueHelp(false);
+                                return;
+                            }
+
+                            if (response.length > 1) {
+
+                                equipments = [];
+                                response.forEach(eq => {
+                                    equipments.push({
+                                        Description: `${eq.Description}`,
+                                        Equipment: `${eq.Equipment}`,
+                                        Plant: `${eq.Plant}`,
+                                        SortField: `${eq.SortField}`,
+                                        WorkCenterL2: `${eq.WorkCenter}`
+                                    })
+                                })
+
+                                AppJsonModel.setProperty('/Equipments', equipments);
+                                equipmentInput.setValue('');
+                                equipmentInput.setEditable(true);
+                                equipmentInput.setShowValueHelp(true);
+                                return;
+                            }
+                        })
+
                     }
                 })
             },

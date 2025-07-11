@@ -230,6 +230,28 @@ sap.ui.define([
                     },
                     {
                         "label": "{i18n>workcenter}",
+                        "template": "WorkCenter"
+                    },
+                    {
+                        "label": "{i18n>sortField}",
+                        "template": "SortField"
+                    },
+                    {
+                        "label": "{i18n>description}",
+                        "template": "Description"
+                    },
+                ],
+                "Equipment2": [
+                    {
+                        "label": "{i18n>equipment}",
+                        "template": "Equipment"
+                    },
+                    {
+                        "label": "{i18n>plant}",
+                        "template": "Plant"
+                    },
+                    {
+                        "label": "{i18n>workcenter}",
                         "template": "WorkCenterL2"
                     },
                     {
