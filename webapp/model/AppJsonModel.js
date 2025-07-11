@@ -234,7 +234,7 @@ sap.ui.define([
                     },
                     {
                         "label": "{i18n>sortField}",
-                        "template": "SortField"
+                        "template": "Sortfield"
                     },
                     {
                         "label": "{i18n>description}",
@@ -256,7 +256,7 @@ sap.ui.define([
                     },
                     {
                         "label": "{i18n>sortField}",
-                        "template": "SortField"
+                        "template": "Sortfield"
                     },
                     {
                         "label": "{i18n>description}",
