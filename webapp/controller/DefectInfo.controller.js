@@ -1351,7 +1351,7 @@ sap.ui.define([
                                 Description: `${eq.Description}`,
                                 Equipment: `${eq.Equipment}`,
                                 Plant: `${eq.Plant}`,
-                                SortField: `${eq.SortField}`,
+                                Sortfield: `${eq.Sortfield}`,
                                 WorkCenter: `${eq.WorkCenter}`
                             })
                         })
@@ -1403,8 +1403,8 @@ sap.ui.define([
                                         Description: `${eq.Description}`,
                                         Equipment: `${eq.Equipment}`,
                                         Plant: `${eq.Plant}`,
-                                        SortField: `${eq.SortField}`,
-                                        WorkCenterL2: `${eq.WorkCenter}`
+                                        Sortfield: `${eq.Sortfield}`,
+                                        WorkCenterL2: `${eq.WorkCenterL2}`
                                     })
                                 })
 

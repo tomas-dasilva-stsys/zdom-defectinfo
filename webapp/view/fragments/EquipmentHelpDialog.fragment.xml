@@ -44,13 +44,13 @@
                     </fb:FilterGroupItem>
                     <fb:FilterGroupItem
                         groupName="__$INTERNAL$"
-                        name="SortField"
+                        name="Sortfield"
                         label="{i18n>sortField}"
                         visibleInFilterBar="true"
                     >
                         <fb:control>
                             <m:Input
-                                name="SortField"
+                                name="Sortfield"
                                 submit="onSubmitFilter"
                             />
                         </fb:control>
