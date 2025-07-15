@@ -597,8 +597,34 @@ sap.ui.define([
                             oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant), new Filter('WorkCenterL2', FilterOperator.EQ, defectInfo.WorkCenter)];
 
                             MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
-                                // const response = data.results;
-                                
+                                const response = data.results;
+
+                                if (response.length === 0) {
+                                    oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant)];
+                                    this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                                        oFragment.getTableAsync().then(function (oTable) {
+                                            oTable.setModel(MatchcodesService.getOdataModel());
+                                            let tableCols = AppJsonModel.getProperty("/Equipment");
+                                            let currentJsonModel = new JSONModel({
+                                                "cols": tableCols
+                                            })
+
+                                            oTable.setModel(currentJsonModel, "columns");
+
+                                            if (oTable.bindRows) {
+                                                oTable.bindAggregation("rows", {
+                                                    path: `${equipmentPath.path}`,
+                                                    filters: oFilters,
+                                                    showHeader: false
+                                                });
+                                            }
+                                            oFragment.update();
+                                        });
+                                        oFragment.open();
+                                        return;
+                                    })
+                                }
+
                                 this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
                                     oFragment.getTableAsync().then(function (oTable) {
                                         oTable.setModel(MatchcodesService.getOdataModel());
@@ -606,9 +632,9 @@ sap.ui.define([
                                         let currentJsonModel = new JSONModel({
                                             "cols": tableCols
                                         })
-    
+
                                         oTable.setModel(currentJsonModel, "columns");
-    
+
                                         if (oTable.bindRows) {
                                             oTable.bindAggregation("rows", {
                                                 path: `${equipmentPath.path}`,
