@@ -56,28 +56,40 @@ sap.ui.define([
                 ],
                 "ProductionOrder": [{
                     "label": "{i18n>productionOrder}",
-                    "template": "ProductionOrder"
+                    "template": "ProductionOrder",
+                    "width": "130px"
                 },
-                {
-                    "label": "{i18n>plant}",
-                    "template": "Plant"
-                },
+                // {
+                //     "label": "{i18n>plant}",
+                //     "template": "Plant"
+                // },
                 {
                     "label": "{i18n>material}",
-                    "template": "Material"
+                    "template": "Material",
+                    "width": "100px"
                 },
                 {
                     "label": "{i18n>materialDescription}",
                     "template": "MaterialDescription"
                 },
                 {
-                    "label": "{i18n>uom}",
-                    "template": "UnitOfMeasure"
+                    "label": "{i18n>status}",
+                    "template": "Status",
+                    "width": "90px",
                 },
                 {
-                    "label": "{i18n>orderType}",
-                    "template": "OrderType"
+                    "label": "{i18n>statusDescription}",
+                    "template": "StatusDescription",
+                    "width": "90px",
                 },
+                // {
+                //     "label": "{i18n>uom}",
+                //     "template": "UnitOfMeasure"
+                // },
+                // {
+                //     "label": "{i18n>orderType}",
+                //     "template": "OrderType"
+                // },
                 {
                     "label": "{i18n>releaseDate}",
                     "template": "ReleaseDate"

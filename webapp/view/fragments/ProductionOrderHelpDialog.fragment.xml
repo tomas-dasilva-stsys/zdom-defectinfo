@@ -75,7 +75,7 @@
                         groupName="__$INTERNAL$"
                         name="OrderType"
                         label="{i18n>orderType}"
-                        visibleInFilterBar="true"
+                        visibleInFilterBar="false"
                     >
                         <fb:control>
                             <m:Input name="OrderType" />

@@ -10,7 +10,7 @@ sap.ui.define([
     "sap/m/MessageBox",
     "zdom/zdom/services/Service",
     "zdom/zdom/services/MatchcodesService",
-    "zdom/zdom/model/AppJsonModel"
+    "zdom/zdom/model/AppJsonModel",
 ],
     function (Controller, JSONModel, Fragment, Filter, FilterOperator, ODataModel, MessagePopover, MessagePopoverItem, MessageBox, Service, MatchcodesService, AppJsonModel) {
         "use strict";
@@ -601,27 +601,54 @@ sap.ui.define([
 
                                 if (response.length === 0) {
                                     oFilters = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant)];
-                                    this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
-                                        oFragment.getTableAsync().then(function (oTable) {
-                                            oTable.setModel(MatchcodesService.getOdataModel());
-                                            let tableCols = AppJsonModel.getProperty("/Equipment");
-                                            let currentJsonModel = new JSONModel({
-                                                "cols": tableCols
-                                            })
 
-                                            oTable.setModel(currentJsonModel, "columns");
+                                    MatchcodesService.callGetService(`${equipmentPath.path}`, [oFilters]).then(data => {
 
-                                            if (oTable.bindRows) {
-                                                oTable.bindAggregation("rows", {
-                                                    path: `${equipmentPath.path}`,
-                                                    filters: oFilters,
-                                                    showHeader: false
-                                                });
-                                            }
-                                            oFragment.update();
-                                        });
-                                        oFragment.open();
-                                        return;
+                                        let noWcFilters = [
+                                            new Filter(
+                                                {
+                                                    filters: [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant)],
+                                                    and: true
+                                                }),
+
+                                            new Filter({
+                                                filters: [
+                                                    new Filter('WorkCenter', FilterOperator.EQ, ''),
+                                                    new Filter('WorkCenter', FilterOperator.EQ, null)],
+                                                and: false
+                                            }),
+
+                                            new Filter({
+                                                filters: [
+                                                    new Filter('WorkCenterL2', FilterOperator.EQ, ''),
+                                                    new Filter('WorkCenterL2', FilterOperator.EQ, null)],
+                                                and: false
+                                            }),
+                                        ]
+
+                                        this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
+                                            oFragment.getTableAsync().then(function (oTable) {
+                                                oTable.setModel(MatchcodesService.getOdataModel());
+                                                let tableCols = AppJsonModel.getProperty("/Equipment");
+                                                let currentJsonModel = new JSONModel({
+                                                    "cols": tableCols
+                                                })
+
+                                                oTable.setModel(currentJsonModel, "columns");
+
+                                                if (oTable.bindRows) {
+                                                    oTable.bindAggregation("rows", {
+                                                        path: `${equipmentPath.path}`,
+                                                        filters: noWcFilters,
+                                                        and: true,
+                                                        showHeader: false,
+                                                    });
+                                                }
+                                                oFragment.update();
+                                            });
+                                            oFragment.open();
+                                            return;
+                                        })
                                     })
                                 }
 
@@ -819,33 +846,52 @@ sap.ui.define([
                 let aFilters = this.setProdOrderFilters(aSelectionSet, releaseDate, releaseDateTo);
 
                 this.getFragment(`${inputId}HelpDialog`).then(oFragment => {
-                    let oBindingInfo = oFragment.getTable().getBinding("rows");
+                    let oBinding = oFragment.getTable().getBinding("rows");
 
                     if (inputId === 'ElementCode' || inputId === 'DefectCode' || inputId === 'CauseCodeGruppe' || inputId === 'CauseCode') {
                         if (!aFilters.length) return
 
-                        let prevFilters = oBindingInfo.aApplicationFilters;
-                        oBindingInfo.aApplicationFilters = [];
+                        let prevFilters = oBinding.aApplicationFilters;
+                        oBinding.aApplicationFilters = [];
 
 
                         let oFilters = new Filter({ filters: [...prevFilters[0], ...aFilters], and: true }); // false
 
-                        oBindingInfo.filter(oFilters);
+                        oBinding.filter(oFilters);
                         oFragment.update();
-                        oBindingInfo.aApplicationFilters = prevFilters;
+                        oBinding.aApplicationFilters = prevFilters;
                         return;
                     }
+
+                    // if (aFilters.length) {
+                    //     let oFilters = new Filter({
+                    //         filters: aFilters,
+                    //         and: true // false
+                    //     });
+
+                    //     oBindingInfo.filter(oFilters);
+                    //     oFragment.update();
+                    //     return;
+                    // }
 
                     if (aFilters.length) {
-                        let oFilters = new Filter({
-                            filters: aFilters,
-                            and: true // false
+                        let oBinding = oFragment.getTable().getBinding("rows");
+
+                        let prevFilters = oBinding.aApplicationFilters || [];
+                        let combinedFilters = [...prevFilters, ...aFilters];
+
+                        let finalFilter = new Filter({
+                            filters: combinedFilters,
+                            and: true
                         });
 
-                        oBindingInfo.filter(oFilters);
+                        oBinding.filter(finalFilter);
                         oFragment.update();
                         return;
                     }
+
+                    oBinding.filter([]);
+                    oFragment.update();
                 })
             },
 
@@ -1051,41 +1097,46 @@ sap.ui.define([
                 }
 
                 this.getFragment(`${inputId}HelpDialog`).then(oFragment => {
-                    let oBindingInfo = oFragment.getTable().getBinding("rows");
+                    let oBinding = oFragment.getTable().getBinding("rows");
 
                     if (inputId === 'ElementCode' || inputId === 'DefectCode' || inputId === 'CauseCodeGruppe' || inputId === 'CauseCode') {
                         // Guardamos los filtros previos
-                        let prevFilters = oBindingInfo.aApplicationFilters;
+                        let prevFilters = oBinding.aApplicationFilters;
                         // Limpiamos los filtros para actualizarlos
-                        oBindingInfo.aApplicationFilters = [];
+                        oBinding.aApplicationFilters = [];
 
                         // Actualizamos filtros con los previos + los nuevos
                         if (aFilters.length) {
                             let oFilters = new Filter({
-                                filters: [...prevFilters[0], ...aFilters],
+                                filters: [...prevFilters, ...aFilters],
                                 and: true // false
                             });
 
-                            oBindingInfo.filter(oFilters);
+                            oBinding.filter(oFilters);
                             oFragment.update();
                             // Volvemos a setear los filtros iniciales para no perderlos
-                            oBindingInfo.aApplicationFilters = prevFilters;
+                            oBinding.aApplicationFilters = prevFilters;
                             return;
                         }
                     }
 
                     if (aFilters.length) {
-                        let oFilters = new Filter({
-                            filters: aFilters,
-                            and: true // false
+                        let oBinding = oFragment.getTable().getBinding("rows");
+
+                        let prevFilters = oBinding.aApplicationFilters || [];
+                        let combinedFilters = [...prevFilters, ...aFilters];
+
+                        let finalFilter = new Filter({
+                            filters: combinedFilters,
+                            and: true
                         });
 
-                        oBindingInfo.filter(oFilters);
+                        oBinding.filter(finalFilter);
                         oFragment.update();
                         return;
                     }
 
-                    oBindingInfo.filter([]);
+                    oBinding.filter([]);
                     oFragment.update();
                 })
             },
