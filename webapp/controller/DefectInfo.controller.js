@@ -18,6 +18,7 @@ sap.ui.define([
         let materialFilters = [];
         let batchFilters = [];
         let boomForSave = [];
+        let originalProdOrderData;
         let savedValues;
 
         let oMessageTemplate = new MessagePopoverItem({
@@ -480,6 +481,7 @@ sap.ui.define([
                 }
 
                 this.getFragment(`${inputId}HelpDialog`).then(oFragment => {
+                    originalProdOrderData = [];
                     oFragment.getTableAsync().then(function (oTable) {
                         oTable.setModel(MatchcodesService.getOdataModel());
                         let tableCols = AppJsonModel.getProperty(`/${inputId}`);
@@ -498,7 +500,6 @@ sap.ui.define([
                         }
 
                         oFragment.update();
-
                     });
                     oFragment.open();
                 })
@@ -836,8 +837,8 @@ sap.ui.define([
 
             onFilterBarSearch: function (oEvent) {
                 let aSelectionSet = oEvent.getParameter("selectionSet");
-                let releaseDate = new Date(aSelectionSet[1]?.getValue());
-                let releaseDateTo = new Date(aSelectionSet[2]?.getValue());
+                let releaseDate = new Date(aSelectionSet[2]?.getValue());
+                let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
 
                 if (!releaseDateTo.getDate()) {
                     releaseDateTo = releaseDate;
@@ -863,6 +864,148 @@ sap.ui.define([
                         return;
                     }
 
+                    if (inputId === 'ProductionOrder' && aFilters.length > 0) {
+                        let aContext = oBinding.getContexts(); // Obtiene todos los contextos cargados
+                        let aData = aContext.map(oContext => oContext.getObject());
+                        originalProdOrderData.push(aData);
+
+                        // Guardamos una copia en JSONModel
+                        let oLocalModel = new JSONModel(aData);
+                        oFragment.setModel(oLocalModel, "localModel");
+
+                        // let aData = oLocalModel.getData();
+                        // let aFiltered = aData.filter(item => {
+                        //     return aFilters.every(oFilter => {
+                        //         let operator = oFilter.sOperator || 'Contains';
+
+                        //         let value1; 
+                        //         let value2;
+                        //         if (operator === 'BT') {;
+                        //             value1 = oFilter.oValue1;
+                        //             value2 = oFilter.oValue2;
+                        //         }
+
+                        //         let path = oFilter.sPath;
+                        //         let value = oFilter.oValue1 ?? '';
+                        //         let itemValue = (item[path] ?? "").toString().toLowerCase();
+
+                        //         switch (operator) {
+                        //             case 'EQ':
+                        //                 return itemValue === value;
+                        //             case 'Contains':
+                        //                 return itemValue.includes(value);
+                        //             case 'StartsWith':
+                        //                 return itemValue.startsWith(value);
+                        //             case 'EndsWith':
+                        //                 return itemValue.endsWith(value);
+                        //             case 'BT':
+                        //                 return value1;
+                        //             default:
+                        //                 return itemValue.includes(value);
+                        //         }
+                        //     })
+                        // })
+
+                        let aFiltered = aData.filter(item => {
+                            return aFilters.every(oFilter => {
+                                let operator = oFilter.sOperator || 'Contains';
+                                let path = oFilter.sPath;
+                                let itemValue = item[path];
+
+                                let value1 = oFilter.oValue1 ?? "";
+                                let value2 = oFilter.oValue2 ?? "";
+
+                                // Si es fecha, convertimos a Date (y comparamos)
+                                const isDateFilter = itemValue instanceof Date || !isNaN(Date.parse(itemValue));
+
+                                if (isDateFilter) {
+                                    let itemDate = new Date(itemValue);
+                                    let date1 = new Date(value1);
+                                    let date2 = new Date(value2);
+
+                                    switch (operator) {
+                                        case 'EQ':
+                                            return itemDate.toDateString() === date1.toDateString();
+                                        case 'BT':
+                                            return itemDate >= date1 && itemDate <= date2;
+                                        case 'GT':
+                                            return itemDate > date1;
+                                        case 'LT':
+                                            return itemDate < date1;
+                                        default:
+                                            return true;
+                                    }
+                                } else {
+                                    let strValue = (itemValue ?? "").toString().toLowerCase();
+                                    let filterValue = (value1 ?? "").toString().toLowerCase();
+
+                                    switch (operator) {
+                                        case 'EQ':
+                                            return strValue === filterValue;
+                                        case 'Contains':
+                                            return strValue.includes(filterValue);
+                                        case 'StartsWith':
+                                            return strValue.startsWith(filterValue);
+                                        case 'EndsWith':
+                                            return strValue.endsWith(filterValue);
+                                        case 'BT':
+                                            return strValue >= value1 && strValue <= value2; // solo útil si no es fecha
+                                        default:
+                                            return strValue.includes(filterValue);
+                                    }
+                                }
+                            });
+                        });
+
+
+                        // 4. Sobrescribís los datos en el modelo temporal (sin afectar el backend)
+                        oLocalModel.setData(aFiltered);
+
+                        // 5. Re-bind temporalmente los datos en la tabla
+                        let oTable = oFragment.getTable();
+                        oTable.setModel(oLocalModel);
+                        oTable.bindRows("/"); // tabla tipo `sap.ui.table.Table`
+
+                        oFragment.update();
+                        return;
+                    }
+
+                    if (inputId === 'ProductionOrder' && aFilters.length === 0) {
+                        let oModelProdOrder = MatchcodesService.getOdataModel();
+                        let oFilters = this.getCurrentFilter(inputId);
+                        let oTable = oFragment.getTable();
+                        oTable.setBusy(true);
+
+                        oModelProdOrder.read('/MatchCodeProductionOrder', {
+                            urlParameters: { "$top": 2000 },
+                            filters: [oFilters],
+
+                            success: (oData) => {
+                                let aData = oData.results;
+                                let originalData = JSON.parse(JSON.stringify(aData));
+                                let oJSONModel = new JSONModel(originalData);
+                                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
+                                let currentJsonModel = new JSONModel({
+                                    "cols": tableCols
+                                })
+
+                                oTable.setModel(MatchcodesService.getOdataModel());
+                                oTable.setModel(currentJsonModel, "columns");
+
+                                oTable.setModel(oJSONModel);
+                                oTable.bindRows("/");
+                                oFragment.update();
+                                oTable.setBusy(false);
+                                return;
+                            },
+                            error: oError => {
+                                console.log(oError);
+                                oTable.setBusy(false);
+                            }
+                        })
+                    }
+
+
                     // if (aFilters.length) {
                     //     let oFilters = new Filter({
                     //         filters: aFilters,
@@ -881,8 +1024,8 @@ sap.ui.define([
                         let combinedFilters = [...prevFilters, ...aFilters];
 
                         let finalFilter = new Filter({
-                            filters: combinedFilters,
-                            and: true
+                            filters: aFilters,
+                            and: false
                         });
 
                         oBinding.filter(finalFilter);

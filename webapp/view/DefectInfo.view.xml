@@ -92,6 +92,7 @@
                                     value="{AppJsonModel>/DefectInfo/CauseCode}"
                                     required="true"
                                     maxLength="4"
+                                    width="80%"
                                 >
                                     <suggestionItems>
                                         <core:Item text="{Name}" />
@@ -171,6 +172,7 @@
                                 maxLength="4"
                                 value="{AppJsonModel>/DefectInfo/RepairCode}"
                                 liveChange="onLiveChange"
+                                width="80%"
                             />
                         </VBox>
 
@@ -271,6 +273,7 @@
                                         required="true"
                                         value="{AppJsonModel>/DefectInfo/UnitOfMeasure}"
                                         enabled="false"
+                                        width="80%"
                                     />
                                 </FlexBox>
                             </FlexBox>
@@ -356,6 +359,7 @@
                                 submit="submitValue"
                                 valueHelpRequest=".onValueHelpRequest"
                                 value="{AppJsonModel>/DefectInfo/SerialNumber}"
+                                width="80%"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />

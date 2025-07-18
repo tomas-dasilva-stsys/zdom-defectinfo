@@ -66,7 +66,7 @@ sap.ui.define([
                 {
                     "label": "{i18n>material}",
                     "template": "Material",
-                    "width": "100px"
+                    "width": "130px"
                 },
                 {
                     "label": "{i18n>materialDescription}",
@@ -75,12 +75,6 @@ sap.ui.define([
                 {
                     "label": "{i18n>status}",
                     "template": "Status",
-                    "width": "90px",
-                },
-                {
-                    "label": "{i18n>statusDescription}",
-                    "template": "StatusDescription",
-                    "width": "90px",
                 },
                 // {
                 //     "label": "{i18n>uom}",

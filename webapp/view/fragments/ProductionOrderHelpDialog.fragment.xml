@@ -41,6 +41,17 @@
 
                     <fb:FilterGroupItem
                         groupName="__$INTERNAL$"
+                        name="Status"
+                        label="{i18n>status}"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <m:Input name="Status" />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+
+                    <fb:FilterGroupItem
+                        groupName="__$INTERNAL$"
                         name="ReleaseDate"
                         label="{i18n>releaseDate}"
                         visibleInFilterBar="true"
