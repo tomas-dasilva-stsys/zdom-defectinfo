@@ -86,7 +86,8 @@ sap.ui.define([
                 // },
                 {
                     "label": "{i18n>releaseDate}",
-                    "template": "ReleaseDate"
+                    "template": "ReleaseDate",
+                    "formatter": "formatDate"
                 },
                 ],
                 "ProductOrderOperation": [

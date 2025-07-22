@@ -54,6 +54,7 @@
         "sap.suite.ui.generic.template": {},
         "sap.ui.comp": {},
         "sap.ui.generic.app": {},
+        "sap.ui.commons": {},
         "sap.ui.table": {},
         "sap.ushell": {}
       }

@@ -75,6 +75,7 @@
                                     value="{AppJsonModel>/DefectInfo/CauseCodeGruppe}"
                                     required="true"
                                     liveChange="onLiveChange"
+                                    maxLength="8"
                                 >
                                     <suggestionItems>
                                         <core:Item text="{Name}" />
@@ -92,7 +93,7 @@
                                     value="{AppJsonModel>/DefectInfo/CauseCode}"
                                     required="true"
                                     maxLength="4"
-                                    width="80%"
+                                    width="60%"
                                 >
                                     <suggestionItems>
                                         <core:Item text="{Name}" />
@@ -273,7 +274,7 @@
                                         required="true"
                                         value="{AppJsonModel>/DefectInfo/UnitOfMeasure}"
                                         enabled="false"
-                                        width="80%"
+                                        width="60%"
                                     />
                                 </FlexBox>
                             </FlexBox>

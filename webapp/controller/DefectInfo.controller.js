@@ -11,14 +11,26 @@ sap.ui.define([
     "zdom/zdom/services/Service",
     "zdom/zdom/services/MatchcodesService",
     "zdom/zdom/model/AppJsonModel",
+    "zdom/zdom/model/formatter",
 ],
-    function (Controller, JSONModel, Fragment, Filter, FilterOperator, ODataModel, MessagePopover, MessagePopoverItem, MessageBox, Service, MatchcodesService, AppJsonModel) {
+    function (Controller,
+        JSONModel,
+        Fragment,
+        Filter,
+        FilterOperator,
+        ODataModel,
+        MessagePopover,
+        MessagePopoverItem,
+        MessageBox,
+        Service,
+        MatchcodesService,
+        AppJsonModel,
+        formatter) {
         "use strict";
         let inputId;
         let materialFilters = [];
         let batchFilters = [];
         let boomForSave = [];
-        let originalProdOrderData;
         let savedValues;
 
         let oMessageTemplate = new MessagePopoverItem({
@@ -34,6 +46,7 @@ sap.ui.define([
         });
 
         return Controller.extend("zdom.zdom.controller.DefectInfo", {
+            formatter: formatter,
             oFragments: {},
 
             // comentario de test
@@ -47,6 +60,7 @@ sap.ui.define([
                 });
 
                 this.getView().setModel(i18nModel, "i18n");
+                this.formatter = formatter
 
                 let pop_msgModel = new sap.ui.model.json.JSONModel({
                     "messageLength": '',
@@ -481,7 +495,6 @@ sap.ui.define([
                 }
 
                 this.getFragment(`${inputId}HelpDialog`).then(oFragment => {
-                    originalProdOrderData = [];
                     oFragment.getTableAsync().then(function (oTable) {
                         oTable.setModel(MatchcodesService.getOdataModel());
                         let tableCols = AppJsonModel.getProperty(`/${inputId}`);
@@ -867,7 +880,6 @@ sap.ui.define([
                     if (inputId === 'ProductionOrder' && aFilters.length > 0) {
                         let aContext = oBinding.getContexts(); // Obtiene todos los contextos cargados
                         let aData = aContext.map(oContext => oContext.getObject());
-                        originalProdOrderData.push(aData);
 
                         // Guardamos una copia en JSONModel
                         let oLocalModel = new JSONModel(aData);
@@ -921,42 +933,56 @@ sap.ui.define([
                                 if (isDateFilter) {
                                     let itemDate = new Date(itemValue);
                                     let date1 = new Date(value1);
+                                    // date1.setDate(date1.getDate() + 1);
                                     let date2 = new Date(value2);
+                                    // date2 ? date2.setDate(date2.getDate() + 1) : ''
 
-                                    switch (operator) {
-                                        case 'EQ':
-                                            return itemDate.toDateString() === date1.toDateString();
-                                        case 'BT':
+                                    if (!value2 || isNaN(date2)) {
+                                        // Solo una fecha: comparación exacta o según operador
+                                        switch (operator) {
+                                            case 'EQ':
+                                            case 'BT': // si el filtro es BT pero sólo hay 1 fecha, tomar como EQ
+                                                return itemDate.toDateString() === date1.toDateString();
+                                            case 'GT':
+                                                return itemDate > date1;
+                                            case 'LT':
+                                                return itemDate < date1;
+                                            default:
+                                                return true;
+                                        }
+                                    } else {
+                                        // Dos fechas válidas: rango BT
+                                        if (operator === 'BT') {
                                             return itemDate >= date1 && itemDate <= date2;
-                                        case 'GT':
-                                            return itemDate > date1;
-                                        case 'LT':
-                                            return itemDate < date1;
-                                        default:
+                                        } else {
+                                            // Otros operadores podrían respetarse igual, o fallback
                                             return true;
+                                        }
                                     }
-                                } else {
+
+                                }
+                                else {
                                     let strValue = (itemValue ?? "").toString().toLowerCase();
                                     let filterValue = (value1 ?? "").toString().toLowerCase();
+                                    let filterValues = filterValue.split(/[\s\*]+/).filter(v => v); // separa por espacios y elimina vacíos
 
                                     switch (operator) {
                                         case 'EQ':
-                                            return strValue === filterValue;
+                                            return filterValues.some(val => strValue === val);
                                         case 'Contains':
-                                            return strValue.includes(filterValue);
+                                            return filterValues.every(val => strValue.includes(val));
                                         case 'StartsWith':
-                                            return strValue.startsWith(filterValue);
+                                            return filterValues.some(val => strValue.startsWith(val));
                                         case 'EndsWith':
-                                            return strValue.endsWith(filterValue);
+                                            return filterValues.some(val => strValue.endsWith(val));
                                         case 'BT':
                                             return strValue >= value1 && strValue <= value2; // solo útil si no es fecha
                                         default:
-                                            return strValue.includes(filterValue);
+                                            return filterValues.some(val => val.includes(val));
                                     }
                                 }
                             });
                         });
-
 
                         // 4. Sobrescribís los datos en el modelo temporal (sin afectar el backend)
                         oLocalModel.setData(aFiltered);
@@ -983,15 +1009,36 @@ sap.ui.define([
                             success: (oData) => {
                                 let aData = oData.results;
                                 let originalData = JSON.parse(JSON.stringify(aData));
+
+                                originalData.forEach(item => {
+                                    if (item.ReleaseDate) {
+                                        item.ReleaseDate = formatter.formatDate(item.ReleaseDate);
+                                    }
+                                });
+
                                 let oJSONModel = new JSONModel(originalData);
                                 let tableCols = AppJsonModel.getProperty(`/${inputId}`);
+
+                                tableCols.forEach(col => {
+                                    let sPath = col.template;
+                                    let oTextView = new sap.ui.commons.TextView({
+                                        text: `{${sPath}}`
+                                    });
+
+                                    let oColumn = new sap.ui.table.Column({
+                                        label: new sap.ui.commons.Label({ text: col.label }),
+                                        template: oTextView,
+                                        width: col.width
+                                    });
+
+                                    oTable.addColumn(oColumn);
+                                });
+
                                 let currentJsonModel = new JSONModel({
                                     "cols": tableCols
                                 })
 
-                                oTable.setModel(MatchcodesService.getOdataModel());
                                 oTable.setModel(currentJsonModel, "columns");
-
                                 oTable.setModel(oJSONModel);
                                 oTable.bindRows("/");
                                 oFragment.update();
@@ -1004,18 +1051,6 @@ sap.ui.define([
                             }
                         })
                     }
-
-
-                    // if (aFilters.length) {
-                    //     let oFilters = new Filter({
-                    //         filters: aFilters,
-                    //         and: true // false
-                    //     });
-
-                    //     oBindingInfo.filter(oFilters);
-                    //     oFragment.update();
-                    //     return;
-                    // }
 
                     if (aFilters.length) {
                         let oBinding = oFragment.getTable().getBinding("rows");
