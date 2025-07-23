@@ -632,12 +632,12 @@ sap.ui.define([
                                                 and: false
                                             }),
 
-                                            // new Filter({
-                                            //     filters: [
-                                            //         new Filter('WorkCenterL2', FilterOperator.EQ, ''),
-                                            //         new Filter('WorkCenterL2', FilterOperator.EQ, null)],
-                                            //     and: false
-                                            // }),
+                                            new Filter({
+                                                filters: [
+                                                    new Filter('WorkCenterL2', FilterOperator.EQ, ''),
+                                                    new Filter('WorkCenterL2', FilterOperator.EQ, null)],
+                                                and: false
+                                            }),
                                         ]
 
                                         this.getFragment(`EquipmentHelpDialog`).then(oFragment => {
@@ -652,8 +652,8 @@ sap.ui.define([
 
                                                 if (oTable.bindRows) {
                                                     oTable.bindAggregation("rows", {
-                                                        path: `${equipmentPath.path}WrkCtr`,
-                                                        filters: oFilters,
+                                                        path: `${equipmentPath.path}`,
+                                                        filters: noWcFilters,
                                                         and: true,
                                                         showHeader: false,
                                                     });
@@ -1627,10 +1627,10 @@ sap.ui.define([
                     }
 
                     if (response.length === 0) {
-                        let defectInfo = AppJsonModel.getProperty('/DefectInfo');
-                        oFilter = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant), new Filter('WorkCenterL2', FilterOperator.EQ, defectInfo.WorkCenter)];
+                        // let defectInfo = AppJsonModel.getProperty('/DefectInfo');
+                        // oFilter = [new Filter('Plant', FilterOperator.EQ, defectInfo.Plant), new Filter('WorkCenterL2', FilterOperator.EQ, defectInfo.WorkCenter)];
 
-                        MatchcodesService.callGetService('/MatchCodeEquipment', [oFilter]).then(data => {
+                        MatchcodesService.callGetService('/MatchCodeEquipmentWrkCtr', [oFilter]).then(data => {
                             const response = data.results;
 
                             if (response.length === 0) {
@@ -1659,7 +1659,7 @@ sap.ui.define([
                                         Equipment: `${eq.Equipment}`,
                                         Plant: `${eq.Plant}`,
                                         Sortfield: `${eq.Sortfield}`,
-                                        WorkCenterL2: `${eq.WorkCenterL2}`
+                                        WorkCenter: `${eq.WorkCenter}`
                                     })
                                 })
 
