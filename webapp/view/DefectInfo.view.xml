@@ -260,6 +260,7 @@
                                         width="100%"
                                         required="true"
                                         change="onInputChange"
+                                        liveChange="onQuantityInputLiveChange"
                                         submit="submitValueQuantity"
                                         type="Number"
                                         value="{AppJsonModel>/DefectInfo/Quantity}"
