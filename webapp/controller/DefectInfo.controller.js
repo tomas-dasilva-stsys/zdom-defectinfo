@@ -474,6 +474,7 @@ sap.ui.define([
             },
 
             onValueHelpRequest: function (oEvent) {
+                let that = this;
                 let defectInfoData = AppJsonModel.getProperty('/DefectInfo');
                 let currentInputName = oEvent.getSource().getName();
                 let currentInputId = oEvent.getSource().getId().split('--').at(-1);
@@ -511,6 +512,16 @@ sap.ui.define([
                                 showHeader: false
                             });
                         }
+
+                        oTable.getBinding("rows").attachEventOnce("dataReceived", () => {
+                            let oFilterBar = oFragment.getFilterBar();
+                            if (oFilterBar) {
+                                let oGoButton = oFilterBar._oSearchButton; // botón interno "Go"
+                                if (oGoButton) {
+                                    oGoButton.firePress(); // simula el clic real
+                                }
+                            }
+                        });
 
                         oFragment.update();
                     });

@@ -46,7 +46,7 @@
                         visibleInFilterBar="true"
                     >
                         <fb:control>
-                            <m:Input name="Status" />
+                            <m:Input name="Status" value="{i18n>statusFilterValue}" />
                         </fb:control>
                     </fb:FilterGroupItem>
 
