@@ -286,6 +286,8 @@ sap.ui.define([
                     "ShowValueHelp": true,
                     "ValueHelpSerialNumber": true,
                     "WorkCenter": true,
+                    "CauseCodeGruppe": true,
+                    "CauseCode": true,
                     "Select": true,
                 },
             });

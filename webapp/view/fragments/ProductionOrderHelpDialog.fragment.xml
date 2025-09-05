@@ -26,7 +26,7 @@
         supportMultiselect="false"
     >
         <filterBar>
-            <fb:FilterBar search="onFilterBarSearch">
+            <fb:FilterBar search="onFilterBarSearchProductionOrder">
                 <fb:filterGroupItems>
                     <fb:FilterGroupItem
                         groupName="__$INTERNAL$"

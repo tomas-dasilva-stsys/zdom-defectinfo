@@ -73,6 +73,7 @@
                                     change="onInputChange"
                                     submit="submitValue"
                                     value="{AppJsonModel>/DefectInfo/CauseCodeGruppe}"
+                                    editable="{AppJsonModel>/Editable/CauseCodeGruppe}"
                                     required="true"
                                     liveChange="onLiveChange"
                                     maxLength="8"
@@ -91,6 +92,7 @@
                                     change="onInputChange"
                                     submit="submitValue"
                                     value="{AppJsonModel>/DefectInfo/CauseCode}"
+                                    editable="{AppJsonModel>/Editable/CauseCode}"
                                     required="true"
                                     maxLength="4"
                                     width="60%"
@@ -101,7 +103,6 @@
                                 </Input>
                             </FlexBox>
                         </VBox>
-                        
 
                         <!-- WORKCENTER  -->
                         <VBox>
@@ -189,7 +190,7 @@
                                 name="ProductionOrder"
                                 showSuggestion="true"
                                 showValueHelp="true"
-                                valueHelpRequest=".onValueHelpRequest"
+                                valueHelpRequest=".onValueHelpRequestProductionOrder"
                                 valueStateText="{i18n>productionOrder} {i18n>requiredField}"
                                 required="true"
                                 change="onInputChange"
@@ -200,7 +201,7 @@
                                     <core:Item text="{Name}" />
                                 </suggestionItems>
                             </Input>
-                        </VBox>                        
+                        </VBox>
 
                         <!-- ELMENT CODE -->
                         <VBox>

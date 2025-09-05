@@ -432,6 +432,8 @@ sap.ui.define([
                 AppJsonModel.setInnerProperty('/DefectInfo', 'RepairCode', '');
                 AppJsonModel.setInnerProperty('/DefectInfo', 'Equipment', '');
                 AppJsonModel.setInnerProperty('/Enabled', 'Material', true);
+                AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
 
                 bomModel.setData({});
                 bomTable.setNoDataText(noDataText);
@@ -513,19 +515,228 @@ sap.ui.define([
                             });
                         }
 
+                        oFragment.update();
+                    });
+                    oFragment.open();
+                })
+            },
+
+            onValueHelpRequestProductionOrder: function (oEvent) {
+                let that = this;
+                let defectInfoData = AppJsonModel.getProperty('/DefectInfo');
+                let currentInputId = oEvent.getSource().getId().split('--').at(-1);
+                let oFilters = this.getCurrentFilter('ProductionOrder');
+
+                inputId = currentInputId;
+
+                this.getFragment('ProductionOrderHelpDialog').then(oFragment => {
+                    oFragment.getTableAsync().then(function (oTable) {
+                        oTable.setModel(MatchcodesService.getOdataModel());
+                        let tableCols = AppJsonModel.getProperty('/ProductionOrder');
+                        let currentJsonModel = new JSONModel({
+                            "cols": tableCols
+                        })
+
+                        oTable.setModel(currentJsonModel, "columns");
+
+                        if (oTable.bindRows) {
+                            oTable.bindAggregation("rows", {
+                                path: '/MatchCodeProductionOrder',
+                                filters: oFilters,
+                                showHeader: false
+                            });
+                        }
+
                         oTable.getBinding("rows").attachEventOnce("dataReceived", () => {
-                            let oFilterBar = oFragment.getFilterBar();
-                            if (oFilterBar) {
-                                let oGoButton = oFilterBar._oSearchButton; // botón interno "Go"
-                                if (oGoButton) {
-                                    oGoButton.firePress(); // simula el clic real
+                            oTable.attachEventOnce("rowsUpdated", () => {
+                                let oFilterBar = oFragment.getFilterBar();
+                                if (oFilterBar) {
+                                    let oGoButton = oFilterBar._oSearchButton; // botón interno "Go"
+                                    if (oGoButton) {
+                                        oGoButton.firePress(); // simula el clic real
+                                    }
                                 }
-                            }
+                            })
                         });
 
                         oFragment.update();
                     });
                     oFragment.open();
+                })
+            },
+
+            onFilterBarSearchProductionOrder: function (oEvent) {
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+                const statusFilterValue = oResourceBundle.getText('statusFilterValue');
+                const deleteFlagValue = oResourceBundle.getText('deleteFlagValue');
+                const statusOptions = ['REL', 'LIB', 'LIB.'];
+
+                let aSelectionSet = oEvent.getParameter("selectionSet");
+                let releaseDate = new Date(aSelectionSet[2]?.getValue());
+                let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
+
+                if (!releaseDateTo.getDate()) {
+                    releaseDateTo = releaseDate;
+                }
+
+                let aFilters = this.setProdOrderFilters(aSelectionSet, releaseDate, releaseDateTo);
+
+                this.getFragment('ProductionOrderHelpDialog').then(oFragment => {
+                    let oBinding = oFragment.getTable().getBinding("rows");
+                    let isStatusRel = false;
+
+                    for (const opt of statusOptions) {
+                        if (aFilters[0]?.oValue1.toUpperCase() === opt) {
+                            isStatusRel = true;
+                        }
+                    }
+
+                    if (aFilters.length > 0 && isStatusRel) {
+                        let oModelProdOrder = MatchcodesService.getOdataModel();
+                        let oFilters = this.getCurrentFilter(inputId);
+                        // let allFilters = [...oFilters, ...aFilters]
+                        let oTable = oFragment.getTable();
+                        oTable.setBusy(true);
+
+                        oModelProdOrder.read('/MatchCodeProductionOrder', {
+                            urlParameters: { "$top": 5000 },
+                            filters: [oFilters],
+
+                            success: (oData) => {
+                                let aData = oData.results;
+
+                                if (aFilters._excludeDelFlag) {
+                                    let cleanValue = statusFilterValue.replace(/^\*+|\*+$/g, "");
+                                    cleanValue.toUpperCase();
+                                    aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
+                                }
+
+                                let originalData = JSON.parse(JSON.stringify(aData));
+
+                                originalData.forEach(item => {
+                                    if (item.ReleaseDate) {
+                                        item.ReleaseDate = formatter.formatDate(item.ReleaseDate);
+                                    }
+                                });
+
+                                let oJSONModel = new JSONModel(originalData);
+                                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
+
+                                tableCols.forEach(col => {
+                                    let sPath = col.template;
+                                    let oTextView = new sap.ui.commons.TextView({
+                                        text: `{${sPath}}`
+                                    });
+
+                                    let oColumn = new sap.ui.table.Column({
+                                        label: new sap.ui.commons.Label({ text: col.label }),
+                                        template: oTextView,
+                                        width: col.width
+                                    });
+
+                                    oTable.addColumn(oColumn);
+                                });
+
+                                let currentJsonModel = new JSONModel({
+                                    "cols": tableCols
+                                })
+
+                                oTable.setModel(currentJsonModel, "columns");
+                                oTable.setModel(oJSONModel);
+                                oTable.bindRows("/");
+                                oFragment.update();
+                                oTable.setBusy(false);
+                                return;
+                            },
+                            error: oError => {
+                                console.log(oError);
+                                oTable.setBusy(false);
+                            }
+                        })
+                    }
+
+                    if (aFilters.length === 0) {
+                        let oModelProdOrder = MatchcodesService.getOdataModel();
+                        let oFilters = this.getCurrentFilter(inputId);
+                        // let allFilters = [...oFilters, ...aFilters]
+                        let oTable = oFragment.getTable();
+                        oTable.setBusy(true);
+
+                        oModelProdOrder.read('/MatchCodeProductionOrder', {
+                            urlParameters: { "$top": 5000 },
+                            filters: [oFilters],
+
+                            success: (oData) => {
+                                let aData = oData.results;
+
+                                if (aFilters._excludeDelFlag) {
+                                    let cleanValue = statusFilterValue.replace(/^\*+|\*+$/g, "");
+                                    cleanValue.toUpperCase();
+                                    aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
+                                }
+
+                                let originalData = JSON.parse(JSON.stringify(aData));
+
+                                originalData.forEach(item => {
+                                    if (item.ReleaseDate) {
+                                        item.ReleaseDate = formatter.formatDate(item.ReleaseDate);
+                                    }
+                                });
+
+                                let oJSONModel = new JSONModel(originalData);
+                                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
+
+                                tableCols.forEach(col => {
+                                    let sPath = col.template;
+                                    let oTextView = new sap.ui.commons.TextView({
+                                        text: `{${sPath}}`
+                                    });
+
+                                    let oColumn = new sap.ui.table.Column({
+                                        label: new sap.ui.commons.Label({ text: col.label }),
+                                        template: oTextView,
+                                        width: col.width
+                                    });
+
+                                    oTable.addColumn(oColumn);
+                                });
+
+                                let currentJsonModel = new JSONModel({
+                                    "cols": tableCols
+                                })
+
+                                oTable.setModel(currentJsonModel, "columns");
+                                oTable.setModel(oJSONModel);
+                                oTable.bindRows("/");
+                                oFragment.update();
+                                oTable.setBusy(false);
+                                return;
+                            },
+                            error: oError => {
+                                console.log(oError);
+                                oTable.setBusy(false);
+                            }
+                        })
+                    }
+
+                    if (aFilters.length && !isStatusRel) {
+                        let oBinding = oFragment.getTable().getBinding("rows");
+
+                        let prevFilters = oBinding.aApplicationFilters || [];
+                        let combinedFilters = [...prevFilters, ...aFilters];
+
+                        let finalFilter = new Filter({
+                            filters: aFilters,
+                            and: false
+                        });
+
+                        oBinding.filter(finalFilter);
+                        oFragment.update();
+                        return;
+                    }
+
+                    oBinding.filter([]);
+                    oFragment.update();
                 })
             },
 
@@ -860,6 +1071,10 @@ sap.ui.define([
             },
 
             onFilterBarSearch: function (oEvent) {
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+                const statusFilterValue = oResourceBundle.getText('statusFilterValue');
+                const deleteFlagValue = oResourceBundle.getText('deleteFlagValue');
+
                 let aSelectionSet = oEvent.getParameter("selectionSet");
                 let releaseDate = new Date(aSelectionSet[2]?.getValue());
                 let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
@@ -889,8 +1104,14 @@ sap.ui.define([
                     }
 
                     if (inputId === 'ProductionOrder' && aFilters.length > 0) {
-                        let aContext = oBinding.getContexts(); // Obtiene todos los contextos cargados
+                        let aContext = oBinding.getContexts(0, Infinity); // Obtiene todos los contextos cargados
                         let aData = aContext.map(oContext => oContext.getObject());
+
+                        if (aFilters._excludeDelFlag) {
+                            let cleanValue = statusFilterValue.replace(/^\*+|\*+$/g, "");
+                            cleanValue.toUpperCase();
+                            aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
+                        }
 
                         // Guardamos una copia en JSONModel
                         let oLocalModel = new JSONModel(aData);
@@ -1085,9 +1306,34 @@ sap.ui.define([
             },
 
             setProdOrderFilters: function (fields, releaseDate, releaseDateTo) {
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+                const statusOptions = ['REL', 'LIB', 'LIB.'];
+
+                const statusFilterValue = oResourceBundle.getText('statusFilterValue');
+
+
                 let filters = fields.reduce((aResult, oControl) => {
                     if (oControl.getName() === 'ReleaseDate' && oControl.getValue()) {
                         aResult.push(new Filter(oControl.getName(), FilterOperator.BT, releaseDate, releaseDateTo));
+                        return aResult;
+                    }
+
+                    if (oControl.getName() === 'Status' && oControl.getValue()) {
+                        let cleanOcontrolValue = oControl.getValue().replace(/^\*+|\*+$/g, "");
+
+                        let oFilter = new Filter(oControl.getName(), FilterOperator.Contains, cleanOcontrolValue)
+                        aResult.push(oFilter);
+
+                        // 👉 Flag especial para tu lógica en onFilterBarSearch
+                        // if (oControl.getValue() === statusFilterValue) {
+                        //     aResult._excludeDelFlag = true;
+                        // }
+
+                        for (let stOpt of statusOptions) {
+                            if (stOpt === cleanOcontrolValue.toUpperCase()) {
+                                aResult._excludeDelFlag = true;
+                            }
+                        }
                         return aResult;
                     }
 
@@ -1139,13 +1385,19 @@ sap.ui.define([
 
                         if (oDataCauseCodeGruppe.results.length === 1) {
                             AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', oDataCauseCodeGruppe.results[0].CauseCodeGruppe);
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
 
-                            let causeCodeFilters = this.setCodesFilters('CauseCode');
-                            let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+                            // let causeCodeFilters = this.setCodesFilters('CauseCode');
+                            // let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
 
-                            if (oDataCause.results.length === 1) {
-                                AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
-                            }
+                            // if (oDataCause.results.length === 1) {
+                            //     AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
+                            // }
+                        }
+
+                        if (oDataCauseCodeGruppe.results.length > 1) {
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
                         }
                     } catch (oError) {
                         console.error(oError);
@@ -1357,7 +1609,7 @@ sap.ui.define([
             getBoomMaterials: function () {
                 const that = this;
                 const oModel = this.getOwnerComponent().getModel();
-                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();;
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const returnLogMsg = oResourceBundle.getText("returnLogMsg");
 
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
@@ -1817,6 +2069,8 @@ sap.ui.define([
                     AppJsonModel.setInnerProperty('/DefectInfo', 'UnitOfMeasure', '');
                     AppJsonModel.setInnerProperty('/Enabled', 'Material', true);
                     AppJsonModel.setInnerProperty('/Editable', 'ValueHelpSerialNumber', true);
+                    AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                    AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
                     bomModel.setData({});
                     bomTable.setNoDataText(noDataText);
                     this.clearNotifications();
@@ -1928,6 +2182,11 @@ sap.ui.define([
                 }
 
                 if (equipmentStateError === 'Error') {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    return;
+                }
+
+                if ((!emptyInputs && boomForSave.length === 0) || emptyInputs) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
                 }
