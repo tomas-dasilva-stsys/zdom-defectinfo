@@ -111,6 +111,7 @@ sap.ui.define([
                             plantInput.setEditable(false);
 
                             this.checkEquipment();
+                            this.checkProductOrderOperation();
                             return;
                         }
 
@@ -129,6 +130,7 @@ sap.ui.define([
                             plantInput.setEditable(false);
 
                             this.checkEquipment();
+                            this.checkProductOrderOperation();
                             return;
                         }
 
@@ -176,6 +178,7 @@ sap.ui.define([
 
                         AppJsonModel.setProperty('/WorkCenters', workCenters);
                         this.checkEquipment();
+                        this.checkProductOrderOperation();
                     }).catch(err => {
                         console.log(err);
                     })
@@ -434,6 +437,9 @@ sap.ui.define([
                 AppJsonModel.setInnerProperty('/Enabled', 'Material', true);
                 AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
                 AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+                AppJsonModel.setInnerProperty('/Editable', 'ElementCode', true);
+                AppJsonModel.setInnerProperty('/Editable', 'DefectCode', true);
+                AppJsonModel.setInnerProperty('/Editable', 'ProductOrderOperation', true);
 
                 bomModel.setData({});
                 bomTable.setNoDataText(noDataText);
@@ -586,6 +592,7 @@ sap.ui.define([
                     let isStatusRel = false;
 
                     for (const opt of statusOptions) {
+                        if (typeof aFilters[0]?.oValue1 === 'object' || typeof aFilters[0]?.oValue2 === 'object') continue
                         if (aFilters[0]?.oValue1.toUpperCase() === opt) {
                             isStatusRel = true;
                         }
@@ -611,7 +618,73 @@ sap.ui.define([
                                     aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
                                 }
 
-                                let originalData = JSON.parse(JSON.stringify(aData));
+                                let aFiltered = aData.filter(item => {
+                                    return aFilters.every(oFilter => {
+                                        let operator = oFilter.sOperator || 'Contains';
+                                        let path = oFilter.sPath;
+                                        let itemValue = item[path];
+
+                                        let value1 = oFilter.oValue1 ?? "";
+                                        let value2 = oFilter.oValue2 ?? "";
+
+                                        // Si es fecha, convertimos a Date (y comparamos)
+                                        const isDateFilter = itemValue instanceof Date || !isNaN(Date.parse(itemValue));
+
+                                        if (isDateFilter) {
+                                            let itemDate = new Date(itemValue);
+                                            let date1 = new Date(value1);
+                                            // date1.setDate(date1.getDate() + 1);
+                                            let date2 = new Date(value2);
+                                            // date2 ? date2.setDate(date2.getDate() + 1) : ''
+
+                                            if (!value2 || isNaN(date2)) {
+                                                // Solo una fecha: comparación exacta o según operador
+                                                switch (operator) {
+                                                    case 'EQ':
+                                                    case 'BT': // si el filtro es BT pero sólo hay 1 fecha, tomar como EQ
+                                                        return itemDate.toDateString() === date1.toDateString();
+                                                    case 'GT':
+                                                        return itemDate > date1;
+                                                    case 'LT':
+                                                        return itemDate < date1;
+                                                    default:
+                                                        return true;
+                                                }
+                                            } else {
+                                                // Dos fechas válidas: rango BT
+                                                if (operator === 'BT') {
+                                                    return itemDate >= date1 && itemDate <= date2;
+                                                } else {
+                                                    // Otros operadores podrían respetarse igual, o fallback
+                                                    return true;
+                                                }
+                                            }
+
+                                        }
+                                        else {
+                                            let strValue = (itemValue ?? "").toString().toLowerCase();
+                                            let filterValue = (value1 ?? "").toString().toLowerCase();
+                                            let filterValues = filterValue.split(/[\s\*]+/).filter(v => v); // separa por espacios y elimina vacíos
+
+                                            switch (operator) {
+                                                case 'EQ':
+                                                    return filterValues.some(val => strValue === val);
+                                                case 'Contains':
+                                                    return filterValues.every(val => strValue.includes(val));
+                                                case 'StartsWith':
+                                                    return filterValues.some(val => strValue.startsWith(val));
+                                                case 'EndsWith':
+                                                    return filterValues.some(val => strValue.endsWith(val));
+                                                case 'BT':
+                                                    return strValue >= value1 && strValue <= value2; // solo útil si no es fecha
+                                                default:
+                                                    return filterValues.some(val => val.includes(val));
+                                            }
+                                        }
+                                    });
+                                });
+
+                                let originalData = JSON.parse(JSON.stringify(aFiltered));
 
                                 originalData.forEach(item => {
                                     if (item.ReleaseDate) {
@@ -631,7 +704,8 @@ sap.ui.define([
                                     let oColumn = new sap.ui.table.Column({
                                         label: new sap.ui.commons.Label({ text: col.label }),
                                         template: oTextView,
-                                        width: col.width
+                                        width: col.width,
+                                        sortProperty: sPath,
                                     });
 
                                     oTable.addColumn(oColumn);
@@ -644,6 +718,16 @@ sap.ui.define([
                                 oTable.setModel(currentJsonModel, "columns");
                                 oTable.setModel(oJSONModel);
                                 oTable.bindRows("/");
+
+                                // Sortear columna de manera ascendente
+                                oTable.attachEventOnce("rowsUpdated", function () {
+                                    let oBinding = oTable.getBinding("rows");
+                                    if (oBinding) {
+                                        let sSortPath = tableCols[4].template; // columna de fecha
+                                        oBinding.sort(new sap.ui.model.Sorter(sSortPath, false)); // false = ascendente, true = descendente
+                                    }
+                                })
+
                                 oFragment.update();
                                 oTable.setBusy(false);
                                 return;
@@ -1366,8 +1450,8 @@ sap.ui.define([
             onValueHelpClose: async function (oEvent) {
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
 
-                if (inputId === 'productionOrder') {
-                    prodOrderPlan.setValue('');
+                if (inputId === 'ProductionOrder') {
+                    // prodOrderPlan.setValue('');
                 }
 
                 if (inputId === 'WorkCenter' || inputId === 'Plant') {
@@ -1378,8 +1462,93 @@ sap.ui.define([
                     this.getBoomMaterials();
                 }
 
-                if (inputId === 'DefectCode' && defectInfo.ElementCode && defectInfo.DefectCode) {
+                if (inputId === 'ProductOrderOperation') {
                     try {
+                        const elementCodeFilters = this.setCodesFilters('ElementCode');
+                        const elementCodeResponse = await MatchcodesService.callGetService('/MatchCodeElementCode', elementCodeFilters);
+
+                        let elementCodeResults = elementCodeResponse.results;
+                        if (elementCodeResults.length === 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'ElementCode', elementCodeResults[0].ElementCode);
+                            AppJsonModel.setInnerProperty('/Editable', 'ElementCode', false);
+
+                            const defectCodeFilters = this.setCodesFilters('DefectCode');
+                            const defectCodeResponse = await MatchcodesService.callGetService('/MatchCodeDefectCode', defectCodeFilters);
+
+                            let defectCodeResults = defectCodeResponse.results;
+                            if (defectCodeResults.length === 1) {
+                                AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', defectCodeResults[0].DefectCode);
+                                AppJsonModel.setInnerProperty('/Editable', 'DefectCode', false);
+
+                                const causeCodeGruppeFilters = this.setCodesFilters('CauseCodeGruppe');
+                                const causeCodeGruppeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCodeGruppe', causeCodeGruppeFilters);
+
+                                let causeCodeGruppeResults = causeCodeGruppeResponse.results;
+                                if (causeCodeGruppeResults.length === 1) {
+                                    AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', causeCodeGruppeResults[0].CauseCodeGruppe);
+                                    AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
+
+                                    const causeCodeFilters = this.setCodesFilters('CauseCode');
+                                    const causeCodeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+
+                                    let causeCodeResults = causeCodeResponse.results;
+                                    if (causeCodeResults.length === 1) {
+                                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', causeCodeResults[0].CauseCode);
+                                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (elementCodeResults.length === 0 || elementCodeResults.length > 1) {
+                            this.cleanCodesInputs();
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+
+                }
+
+                if (inputId === 'ElementCode') {
+                    this.autocompleteCodesInputs(inputId);
+                }
+
+                if (inputId === 'DefectCode' && defectInfo.ElementCode && defectInfo.DefectCode) {
+                    this.autocompleteCodesInputs(inputId);
+                }
+
+                if (inputId === 'CauseCodeGruppe') {
+                    this.autocompleteCodesInputs(inputId);
+                }
+
+                this.toggleSaveButton();
+            },
+
+            cleanCodesInputs: function () {
+                // Element code
+                AppJsonModel.setInnerProperty('/DefectInfo', 'ElementCode', '');
+                AppJsonModel.setInnerProperty('/Editable', 'ElementCode', true);
+                // Defect code
+                AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', '');
+                AppJsonModel.setInnerProperty('/Editable', 'DefectCode', true);
+                // Causecode gruppe
+                AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', '');
+                AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                // Causecode
+                AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
+                AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+            },
+
+            autocompleteCodesInputs: async function (id) {
+                if (id === 'ElementCode') {
+                    const defectCodeFilters = this.setCodesFilters('DefectCode');
+                    const defectCodeResponse = await MatchcodesService.callGetService('/MatchCodeDefectCode', defectCodeFilters);
+
+                    let defectCodeResults = defectCodeResponse.results;
+                    if (defectCodeResults.length === 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', defectCodeResults[0].DefectCode);
+                        AppJsonModel.setInnerProperty('/Editable', 'DefectCode', false);
+
                         let causeCodeGruppeFilters = this.setCodesFilters('CauseCodeGruppe');
                         let oDataCauseCodeGruppe = await MatchcodesService.callGetService('/MatchCodeCauseCodeGruppe', causeCodeGruppeFilters);
 
@@ -1387,24 +1556,56 @@ sap.ui.define([
                             AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', oDataCauseCodeGruppe.results[0].CauseCodeGruppe);
                             AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
 
-                            // let causeCodeFilters = this.setCodesFilters('CauseCode');
-                            // let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+                            let causeCodeFilters = this.setCodesFilters('CauseCode');
+                            let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
 
-                            // if (oDataCause.results.length === 1) {
-                            //     AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
-                            // }
+                            if (oDataCause.results.length === 1) {
+                                AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
+                                AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                            }
                         }
-
-                        if (oDataCauseCodeGruppe.results.length > 1) {
-                            AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
-                            AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
-                        }
-                    } catch (oError) {
-                        console.error(oError);
                     }
                 }
 
-                this.toggleSaveButton();
+                if (id === 'DefectCode') {
+                    let causeCodeGruppeFilters = this.setCodesFilters('CauseCodeGruppe');
+                    let oDataCauseCodeGruppe = await MatchcodesService.callGetService('/MatchCodeCauseCodeGruppe', causeCodeGruppeFilters);
+                    let causeCodeGruppeResults = oDataCauseCodeGruppe.results;
+
+                    if (causeCodeGruppeResults.length === 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', causeCodeGruppeResults[0].CauseCodeGruppe);
+                        AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
+
+                        let causeCodeFilters = this.setCodesFilters('CauseCode');
+                        let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+                        let causeCodeResults = oDataCause.results;
+
+                        if (causeCodeResults.length === 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', causeCodeResults[0].CauseCode);
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                        }
+                    }
+
+                    if (oDataCauseCodeGruppe.results.length > 1) {
+                        AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+                    }
+                }
+
+                if (id === 'CauseCodeGruppe') {
+                    let causeCodeFilters = this.setCodesFilters('CauseCode');
+                    let oDataCause = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+
+                    if (oDataCause.results.length === 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
+                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                    }
+
+                    if (oDataCause.results.length === 0 || oDataCause.results.length > 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
+                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+                    }
+                }
             },
 
             submitValue: function (oEvent) {
@@ -2045,6 +2246,61 @@ sap.ui.define([
                 })
             },
 
+            checkProductOrderOperation: async function () {
+                try {
+                    const defectInfoData = AppJsonModel.getProperty('/DefectInfo');
+                    const filters = [new Filter('Plant', FilterOperator.EQ, defectInfoData.Plant), new Filter('WorkCenter', FilterOperator.EQ, defectInfoData.WorkCenter)]
+
+                    const productOrOperationResponse = await MatchcodesService.callGetService('/MatchCodeProductOrderOperation', filters);
+                    let results = productOrOperationResponse.results;
+                    // let testResult = results.splice(0, 1);
+
+                    if (results.length === 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'ProductOrderOperation', results[0].ProductOrderOperation);
+                        AppJsonModel.setInnerProperty('/Editable', 'ProductOrderOperation', false);
+
+                        const elementCodeFilters = this.setCodesFilters('ElementCode');
+                        const elementCodeResponse = await MatchcodesService.callGetService('/MatchCodeElementCode', elementCodeFilters);
+
+                        let elementCodeResults = elementCodeResponse.results;
+                        if (elementCodeResults.length === 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'ElementCode', elementCodeResults[0].ElementCode);
+                            AppJsonModel.setInnerProperty('/Editable', 'ElementCode', false);
+
+                            const defectCodeFilters = this.setCodesFilters('DefectCode');
+                            const defectCodeResponse = await MatchcodesService.callGetService('/MatchCodeDefectCode', defectCodeFilters);
+
+                            let defectCodeResults = defectCodeResponse.results;
+                            if (defectCodeResults.length === 1) {
+                                AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', defectCodeResults[0].DefectCode);
+                                AppJsonModel.setInnerProperty('/Editable', 'DefectCode', false);
+
+                                const causeCodeGruppeFilters = this.setCodesFilters('CauseCodeGruppe');
+                                const causeCodeGruppeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCodeGruppe', causeCodeGruppeFilters);
+
+                                let causeCodeGruppeResults = causeCodeGruppeResponse.results;
+                                if (causeCodeGruppeResults.length === 1) {
+                                    AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', causeCodeGruppeResults[0].CauseCodeGruppe);
+                                    AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
+
+                                    const causeCodeFilters = this.setCodesFilters('CauseCode');
+                                    const causeCodeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+
+                                    let causeCodeResults = causeCodeResponse.results;
+                                    if (causeCodeResults.length === 1) {
+                                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', causeCodeResults[0].CauseCode);
+                                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } catch (error) {
+                    console.log(error);
+                }
+            },
+
             onInputChange: function (oEvent) {
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const noDataText = oResourceBundle.getText("noData");
@@ -2069,8 +2325,8 @@ sap.ui.define([
                     AppJsonModel.setInnerProperty('/DefectInfo', 'UnitOfMeasure', '');
                     AppJsonModel.setInnerProperty('/Enabled', 'Material', true);
                     AppJsonModel.setInnerProperty('/Editable', 'ValueHelpSerialNumber', true);
-                    AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
-                    AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+                    // AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                    // AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
                     bomModel.setData({});
                     bomTable.setNoDataText(noDataText);
                     this.clearNotifications();

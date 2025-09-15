@@ -49,6 +49,7 @@
                                 id="ProductOrderOperation"
                                 name="ProductOrderOperation"
                                 value="{AppJsonModel>/DefectInfo/ProductOrderOperation}"
+                                editable="{AppJsonModel>/Editable/ProductOrderOperation}"
                                 required="true"
                                 showValueHelp="true"
                                 valueHelpRequest=".onValueHelpRequest"
@@ -229,6 +230,7 @@
                                         valueHelpRequest=".onValueHelpRequest"
                                         valueStateText="{i18n>elementCode} {i18n>requiredField}"
                                         value="{AppJsonModel>/DefectInfo/ElementCode}"
+                                        editable="{AppJsonModel>/Editable/ElementCode}"
                                         required="true"
                                         change="onInputChange"
                                         submit="submitValue"
@@ -335,6 +337,7 @@
                                         valueHelpRequest=".onValueHelpRequest"
                                         valueStateText="{i18n>defectCode} {i18n>requiredField}"
                                         value="{AppJsonModel>/DefectInfo/DefectCode}"
+                                        editable="{AppJsonModel>/Editable/DefectCode}"
                                         required="true"
                                         change="onInputChange"
                                         submit="submitValue"
@@ -363,6 +366,7 @@
                                 valueHelpRequest=".onValueHelpRequest"
                                 value="{AppJsonModel>/DefectInfo/SerialNumber}"
                                 width="80%"
+                                maxLength="18"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
