@@ -1456,6 +1456,7 @@ sap.ui.define([
 
                 if (inputId === 'WorkCenter' || inputId === 'Plant') {
                     this.saveDefaultValue();
+                    this.autocompleteCodesInputs(inputId);
                 }
 
                 if ((inputId === 'ProductionOrder' || inputId === 'ProductOrderOperation') && defectInfo.ProductionOrder && defectInfo.ProductOrderOperation) {
@@ -1540,6 +1541,65 @@ sap.ui.define([
             },
 
             autocompleteCodesInputs: async function (id) {
+                if (id === 'WorkCenter') {
+                    const defectInfoData = AppJsonModel.getProperty('/DefectInfo');
+                    const filters = [new Filter('Plant', FilterOperator.EQ, defectInfoData.Plant), new Filter('WorkCenter', FilterOperator.EQ, defectInfoData.WorkCenter)]
+
+                    const productOrOperationResponse = await MatchcodesService.callGetService('/MatchCodeProductOrderOperation', filters);
+                    let results = productOrOperationResponse.results;
+
+                    if (results.length === 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'ProductOrderOperation', results[0].ProductOrderOperation);
+                        AppJsonModel.setInnerProperty('/Editable', 'ProductOrderOperation', false);
+
+                        const elementCodeFilters = this.setCodesFilters('ElementCode');
+                        const elementCodeResponse = await MatchcodesService.callGetService('/MatchCodeElementCode', elementCodeFilters);
+
+                        let elementCodeResults = elementCodeResponse.results;
+                        if (elementCodeResults.length === 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'ElementCode', elementCodeResults[0].ElementCode);
+                            AppJsonModel.setInnerProperty('/Editable', 'ElementCode', false);
+
+                            const defectCodeFilters = this.setCodesFilters('DefectCode');
+                            const defectCodeResponse = await MatchcodesService.callGetService('/MatchCodeDefectCode', defectCodeFilters);
+
+                            let defectCodeResults = defectCodeResponse.results;
+                            if (defectCodeResults.length === 1) {
+                                AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', defectCodeResults[0].DefectCode);
+                                AppJsonModel.setInnerProperty('/Editable', 'DefectCode', false);
+
+                                const causeCodeGruppeFilters = this.setCodesFilters('CauseCodeGruppe');
+                                const causeCodeGruppeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCodeGruppe', causeCodeGruppeFilters);
+
+                                let causeCodeGruppeResults = causeCodeGruppeResponse.results;
+                                if (causeCodeGruppeResults.length === 1) {
+                                    AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', causeCodeGruppeResults[0].CauseCodeGruppe);
+                                    AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', false);
+
+                                    const causeCodeFilters = this.setCodesFilters('CauseCode');
+                                    const causeCodeResponse = await MatchcodesService.callGetService('/MatchCodeCauseCode', causeCodeFilters);
+
+                                    let causeCodeResults = causeCodeResponse.results;
+                                    if (causeCodeResults.length === 1) {
+                                        AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', causeCodeResults[0].CauseCode);
+                                        AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (elementCodeResults.length === 0 || elementCodeResults.length > 1) {
+                            this.cleanCodesInputs()
+                        }
+                    }
+
+                    if (results.length === 0 || results.length > 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'ProductOrderOperation', '')
+                        AppJsonModel.setInnerProperty('/Editable', 'ProductOrderOperation', true)
+                        this.cleanCodesInputs()
+                    }
+                }
+
                 if (id === 'ElementCode') {
                     const defectCodeFilters = this.setCodesFilters('DefectCode');
                     const defectCodeResponse = await MatchcodesService.callGetService('/MatchCodeDefectCode', defectCodeFilters);
