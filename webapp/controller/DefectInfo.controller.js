@@ -1639,6 +1639,8 @@ sap.ui.define([
                     }
 
                     if (defectCodeResults.length === 0 || defectCodeResults.length > 1) {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'DefectCode', '');
+                        AppJsonModel.setInnerProperty('/Editable', 'DefectCode', true);
                         AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', '');
                         AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
                         AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
