@@ -1635,6 +1635,18 @@ sap.ui.define([
                                 AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', oDataCause.results[0].CauseCode);
                                 AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
                             }
+
+                            if (oDataCause.results.length === 0 || oDataCause.results.length > 1) {
+                                AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
+                                AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
+                            }
+                        }
+
+                        if (oDataCauseCodeGruppe.length === 0 || oDataCauseCodeGruppe.length > 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCodeGruppe', '');
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCodeGruppe', true);
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
                         }
                     }
 
