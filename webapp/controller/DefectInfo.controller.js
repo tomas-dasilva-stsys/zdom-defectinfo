@@ -867,6 +867,8 @@ sap.ui.define([
             },
 
             onValueHelpDialogEquipment: function (oEvent) {
+                debugger;
+
                 let currentInputId = oEvent.getSource().getId().split('--').at(-1);
                 let currentData = AppJsonModel.getProperty('/DefectInfo');
                 let equipments = AppJsonModel.getProperty('/Equipments');
@@ -1676,6 +1678,11 @@ sap.ui.define([
                         if (causeCodeResults.length === 1) {
                             AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', causeCodeResults[0].CauseCode);
                             AppJsonModel.setInnerProperty('/Editable', 'CauseCode', false);
+                        }
+
+                        if (causeCodeResults.length === 0 || causeCodeResults.length > 1) {
+                            AppJsonModel.setInnerProperty('/DefectInfo', 'CauseCode', '');
+                            AppJsonModel.setInnerProperty('/Editable', 'CauseCode', true);
                         }
                     }
 

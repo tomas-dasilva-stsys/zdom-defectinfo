@@ -229,23 +229,27 @@ sap.ui.define([
                 "Equipment": [
                     {
                         "label": "{i18n>equipment}",
-                        "template": "Equipment"
+                        "template": "Equipment",
+                        "width": "120px"
                     },
                     {
                         "label": "{i18n>plant}",
-                        "template": "Plant"
+                        "template": "Plant",
+                        "width": "100px"
                     },
                     {
                         "label": "{i18n>workcenter}",
-                        "template": "WorkCenter"
+                        "template": "WorkCenter",
+                        "width": "140px"
                     },
                     {
                         "label": "{i18n>sortField}",
-                        "template": "SortField"
+                        "template": "SortField",
+                        "width": "180px"
                     },
                     {
                         "label": "{i18n>description}",
-                        "template": "Description"
+                        "template": "Description",
                     },
                 ],
                 "Equipment2": [
