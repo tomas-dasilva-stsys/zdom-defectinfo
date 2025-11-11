@@ -374,7 +374,22 @@
                             </Input>
                         </VBox>
 
-                        <VBox />
+                        <!-- OPERARIO -->
+                        <!-- <VBox>
+                            <Label
+                                text="Operario"
+                                labelFor="SerialNumber"
+                            />
+                            <Input
+                                name="Operario"
+                                editable="false"
+                            >
+                                <suggestionItems>
+                                    <core:Item text="{Name}" />
+                                </suggestionItems>
+                            </Input>
+                        </VBox> -->
+
                         <VBox />
                         <!-- CHECK -->
                         <VBox>

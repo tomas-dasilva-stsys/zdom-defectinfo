@@ -1449,7 +1449,7 @@ sap.ui.define([
                 return filters;
             },
 
-            onValueHelpClose: async function (oEvent) {
+            onValueHelpClose: async function () {
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
 
                 if (inputId === 'ProductionOrder') {
@@ -1938,7 +1938,12 @@ sap.ui.define([
                     return;
                 }
 
-                let aFilters = [new Filter("ProdOrder", FilterOperator.EQ, currentProdOrder), new Filter('ProdOrderOpPlan', FilterOperator.EQ, currentProdOrderPlan), new Filter("WorkCtr", FilterOperator.EQ, currentWorkCenter), new Filter("ComplainQty", FilterOperator.EQ, currentQuantity)];
+                let aFilters = [
+                    new Filter("ProdOrder", FilterOperator.EQ, currentProdOrder),
+                    new Filter('ProdOrderOpPlan', FilterOperator.EQ, currentProdOrderPlan),
+                    new Filter("WorkCtr", FilterOperator.EQ, currentWorkCenter),
+                    new Filter("ComplainQty", FilterOperator.EQ, currentQuantity)
+                ];
 
                 bomTable.setBusy(true);
                 oModel.read("/ZfmGetBomSet", {
@@ -2467,11 +2472,24 @@ sap.ui.define([
             },
 
             onQuantityInputLiveChange: function (oEvent) {
-                let defectInfo = AppJsonModel.getProperty('/DefectInfo');
-                let currValue = oEvent.getParameter('value');
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+                const noDataText = oResourceBundle.getText('noData')
+                const defectInfo = AppJsonModel.getProperty('/DefectInfo');
+                const currValue = oEvent.getParameter('value');
+                const bomModel = this.getOwnerComponent().getModel('boomData');
+                const bomTable = this.byId("bomTable");
+
+                if (!currValue.trim()) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+                    bomModel.setData({});
+                    bomTable.setNoDataText(noDataText);
+                    return;
+                }
 
                 if (defectInfo.ProductionOrder && defectInfo.ProductOrderOperation && currValue) {
                     AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+                    // AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
                     this.getBoomMaterials();
                     return;
                 }
