@@ -389,7 +389,7 @@
                                 </suggestionItems>
                             </Input>
                         </VBox> -->
-
+                        <VBox />
                         <VBox />
                         <!-- CHECK -->
                         <VBox>

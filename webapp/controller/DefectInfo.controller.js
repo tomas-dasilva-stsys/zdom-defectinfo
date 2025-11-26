@@ -527,301 +527,406 @@ sap.ui.define([
                 })
             },
 
-            onValueHelpRequestProductionOrder: function (oEvent) {
-                let that = this;
-                let defectInfoData = AppJsonModel.getProperty('/DefectInfo');
-                let currentInputId = oEvent.getSource().getId().split('--').at(-1);
-                let oFilters = this.getCurrentFilter('ProductionOrder');
+            // VERSION ACTUAL
+            // onValueHelpRequestProductionOrder: function (oEvent) {
+            //     const that = this;
 
+            //     const currentInputId = oEvent.getSource().getId().split("--").at(-1);
+            //     const oFilters = this.getCurrentFilter("ProductionOrder");
+
+            //     inputId = currentInputId;
+
+            //     this.getFragment("ProductionOrderHelpDialog").then(oFragment => {
+
+            //         oFragment.getTableAsync().then(oTable => {
+            //             // Modelos
+            //             oTable.setModel(MatchcodesService.getOdataModel());
+            //             const tableCols = AppJsonModel.getProperty("/ProductionOrder");
+            //             const currentJsonModel = new JSONModel({ cols: tableCols });
+            //             oTable.setModel(currentJsonModel, "columns");
+
+            //             // Binding de filas
+            //             oTable.bindRows({
+            //                 path: "/MatchCodeProductionOrder",
+            //                 filters: oFilters
+            //             });
+
+            //             const oBinding = oTable.getBinding("rows");
+            //             const oFilterBar = oFragment.getFilterBar();
+            //             const oGoButton = oFilterBar?._oSearchButton;
+            //             if (!oGoButton) {
+            //                 console.warn("No se encontró el botón GO del FilterBar");
+            //                 return;
+            //             }
+
+            //             // ------------------------------------------------------------------
+            //             // EJECUTAR GO SOLO CUANDO TODO EL BINDING + RENDERING TERMINÓ
+            //             // ------------------------------------------------------------------
+
+            //             // Espera a que el backend devuelva los datos
+            //             // oBinding.attachEventOnce("dataReceived", (oEvent) => {
+            //             //     let renderTimer;
+
+            //             //     console.log({oEvent});
+            //             //     // const waitForFinalRender = () => {
+            //             //     //     clearTimeout(renderTimer);
+
+            //             //     //     // 200ms sin rowsUpdated = tabla completamente estable
+            //             //     //     renderTimer = setTimeout(() => {
+            //             //     //         console.log("Tabla cargada y estable → ejecutando GO");
+
+            //             //     //         // Ejecutamos el GO exactamente cuando corresponde
+            //             //     //         oGoButton.firePress();
+
+            //             //     //         // Ya no necesitamos escuchar más
+            //             //     //         oTable.detachRowsUpdated(waitForFinalRender);
+            //             //     //     }, 200);
+            //             //     // };
+
+            //             //     // Escuchar todas las actualizaciones de filas
+            //             //     // oTable.attachRowsUpdated(waitForFinalRender);
+            //             // });
+            //             let bGoExecuted = false;
+            //             oTable.attachEvent("rowsUpdated", function () {
+            //                 if (bGoExecuted) return;
+
+            //                 let oBinding = oTable.getBinding("rows");
+
+            //                 // ¿Quedan requests pendientes?
+            //                 let bPending = oBinding.bPendingRequest;
+
+            //                 console.log("rowsUpdated – pending:", bPending,
+            //                     "final length:", oBinding.iLength);
+
+            //                 // Si todavía hay requests pendientes → no hacer nada
+            //                 if (bPending) return;
+
+            //                 // Si ya NO hay pedidos pendientes → ya terminó la carga completa
+            //                 console.log("🔥 Tabla COMPLETAMENTE cargada con", oBinding.iLength, "filas");
+
+            //                 // disparamos el GO
+            //                 if (!bGoExecuted) {
+            //                     bGoExecuted = true;
+            //                     oGoButton.firePress();
+            //                 }
+            //             });
+
+
+            //             // oTable.setBusy(true);
+            //             oFragment.update();
+            //         });
+
+            //         oFragment.open();
+            //     });
+            // },
+
+            onValueHelpRequestProductionOrder: function (oEvent) {
+                const currentInputId = oEvent.getSource().getId().split('--').at(-1);
                 inputId = currentInputId;
 
-                this.getFragment('ProductionOrderHelpDialog').then(oFragment => {
-                    oFragment.getTableAsync().then(function (oTable) {
-                        oTable.setModel(MatchcodesService.getOdataModel());
-                        let tableCols = AppJsonModel.getProperty('/ProductionOrder');
-                        let currentJsonModel = new JSONModel({
-                            "cols": tableCols
-                        })
+                let oFilters = this.getCurrentFilter('ProductionOrder');
 
-                        oTable.setModel(currentJsonModel, "columns");
+                this.getFragment(`${currentInputId}HelpDialog`).then(oFragment => {
+                    oFragment.open();
 
-                        if (oTable.bindRows) {
-                            oTable.bindAggregation("rows", {
-                                path: '/MatchCodeProductionOrder',
-                                filters: oFilters,
-                                showHeader: false
-                            });
-                        }
+                    oFragment.attachAfterOpen(() => {
+                        oFragment.getTableAsync().then(oTable => {
 
-                        oTable.getBinding("rows").attachEventOnce("dataReceived", () => {
-                            oTable.attachEventOnce("rowsUpdated", () => {
-                                let oFilterBar = oFragment.getFilterBar();
+                            oTable.setModel(MatchcodesService.getOdataModel())
+                            const cols = AppJsonModel.getProperty('/ProductionOrder')
+                            const colsModel = new JSONModel({ "cols": cols })
+                            oTable.setModel(colsModel, "columns");
+                            
+                            // if (oTable.bindRows) {
+                            //     oTable.bindAggregation("rows", {
+                            //         path: '/MatchCodeProductionOrder',
+                            //         filters: oFilters,
+                            //         showHeader: false
+                            //     });
+                            // }
+
+                            oTable.setModel(new JSONModel([]));
+                            oTable.bindRows('/');
+                            oTable.setBusy(true);
+
+                            let oFilterBar = oFragment.getFilterBar();
+
+                            setTimeout(() => {
                                 if (oFilterBar) {
                                     let oGoButton = oFilterBar._oSearchButton; // botón interno "Go"
                                     if (oGoButton) {
                                         oGoButton.firePress(); // simula el clic real
                                     }
                                 }
-                            })
-                        });
-
-                        oFragment.update();
-                    });
-                    oFragment.open();
+                            }, 50)
+                        })
+                    })
                 })
             },
 
-            onFilterBarSearchProductionOrder: function (oEvent) {
+            onFilterBarSearchProductionOrder: async function (oEvent) {
+
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const statusFilterValue = oResourceBundle.getText('statusFilterValue');
                 const deleteFlagValue = oResourceBundle.getText('deleteFlagValue');
                 const statusOptions = ['REL', 'LIB', 'LIB.'];
 
-                let aSelectionSet = oEvent.getParameter("selectionSet");
-                let releaseDate = new Date(aSelectionSet[2]?.getValue());
-                let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
+                const aSelectionSet = oEvent.getParameter("selectionSet");
 
-                if (!releaseDateTo.getDate()) {
-                    releaseDateTo = releaseDate;
+                const releaseDate = new Date(aSelectionSet[2]?.getValue());
+                let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
+                if (!releaseDateTo.getDate()) releaseDateTo = releaseDate;
+
+                // Filtros del usuario
+                const aFilters = this.setProdOrderFilters(aSelectionSet, releaseDate, releaseDateTo);
+
+                // Detectar si se filtró por Status con valores REL/LIB/LIB.
+                const userStatusFilter = aSelectionSet[1]?.getValue?.() || "";
+                const cleanStatusFilter = userStatusFilter?.replace(/^\*+|\*+$/g, "");
+                const isClientSideStatus = statusOptions.includes(cleanStatusFilter.toUpperCase().trim());
+
+                // Obtener fragment y tabla
+                const oFragment = await this.getFragment('ProductionOrderHelpDialog');
+                const oTable = await oFragment.getTableAsync();
+                const oModelProdOrder = MatchcodesService.getOdataModel();
+                const oBaseFilter = this.getCurrentFilter(inputId);
+
+                // Busy inmediato
+                oTable.setBusyIndicatorDelay(0);
+                oTable.setBusy(true);
+
+                // Mostrar el dialog
+                if (!oFragment.isOpen || !oFragment.isOpen()) {
+                    oFragment.open();
                 }
 
-                let aFilters = this.setProdOrderFilters(aSelectionSet, releaseDate, releaseDateTo);
+                // ----------------- Helpers -----------------
 
-                this.getFragment('ProductionOrderHelpDialog').then(oFragment => {
-                    let oBinding = oFragment.getTable().getBinding("rows");
-                    let isStatusRel = false;
+                const filterInChunks = (aData, aFilters, chunkSize = 500) => {
+                    return new Promise(resolve => {
+                        const result = [];
+                        let index = 0;
 
-                    for (const opt of statusOptions) {
-                        if (typeof aFilters[0]?.oValue1 === 'object' || typeof aFilters[0]?.oValue2 === 'object') continue
-                        if (aFilters[0]?.oValue1.toUpperCase() === opt) {
-                            isStatusRel = true;
+                        const processChunk = () => {
+                            const end = Math.min(index + chunkSize, aData.length);
+
+                            for (; index < end; index++) {
+                                const item = aData[index];
+                                if (_itemMatches(item, aFilters)) result.push(item);
+                            }
+                            if (index < aData.length) {
+                                setTimeout(processChunk, 0);
+                            } else {
+                                resolve(result);
+                            }
                         }
-                    }
 
-                    if (aFilters.length > 0 && isStatusRel) {
-                        let oModelProdOrder = MatchcodesService.getOdataModel();
-                        let oFilters = this.getCurrentFilter(inputId);
-                        // let allFilters = [...oFilters, ...aFilters]
-                        let oTable = oFragment.getTable();
-                        oTable.setBusy(true);
+                        processChunk();
+                    });
+                };
 
-                        oModelProdOrder.read('/MatchCodeProductionOrder', {
-                            urlParameters: { "$top": 5000 },
-                            filters: [oFilters],
+                const _itemMatches = (item, filters) => {
+                    return filters.every(f => {
 
-                            success: (oData) => {
-                                let aData = oData.results;
+                        const op = f.sOperator || "Contains";
+                        const path = f.sPath;
+                        const itemValue = item[path];
+                        const v1 = f.oValue1;
+                        const v2 = f.oValue2;
 
-                                if (aFilters._excludeDelFlag) {
-                                    let cleanValue = statusFilterValue.replace(/^\*+|\*+$/g, "");
-                                    cleanValue.toUpperCase();
-                                    aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
+                        // Fecha
+                        const isDate = !isNaN(Date.parse(itemValue));
+                        if (isDate) {
+                            const dItem = new Date(itemValue);
+                            const d1 = new Date(v1);
+                            const d2 = v2 ? new Date(v2) : null;
+
+                            if (!d2 || isNaN(d2)) {
+                                switch (op) {
+                                    case "EQ": return dItem.toDateString() === d1.toDateString();
+                                    case "GT": return dItem > d1;
+                                    case "LT": return dItem < d1;
+                                    default: return true;
                                 }
-
-                                let aFiltered = aData.filter(item => {
-                                    return aFilters.every(oFilter => {
-                                        let operator = oFilter.sOperator || 'Contains';
-                                        let path = oFilter.sPath;
-                                        let itemValue = item[path];
-
-                                        let value1 = oFilter.oValue1 ?? "";
-                                        let value2 = oFilter.oValue2 ?? "";
-
-                                        // Si es fecha, convertimos a Date (y comparamos)
-                                        const isDateFilter = itemValue instanceof Date || !isNaN(Date.parse(itemValue));
-
-                                        if (isDateFilter) {
-                                            let itemDate = new Date(itemValue);
-                                            let date1 = new Date(value1);
-                                            // date1.setDate(date1.getDate() + 1);
-                                            let date2 = new Date(value2);
-                                            // date2 ? date2.setDate(date2.getDate() + 1) : ''
-
-                                            if (!value2 || isNaN(date2)) {
-                                                // Solo una fecha: comparación exacta o según operador
-                                                switch (operator) {
-                                                    case 'EQ':
-                                                    case 'BT': // si el filtro es BT pero sólo hay 1 fecha, tomar como EQ
-                                                        return itemDate.toDateString() === date1.toDateString();
-                                                    case 'GT':
-                                                        return itemDate > date1;
-                                                    case 'LT':
-                                                        return itemDate < date1;
-                                                    default:
-                                                        return true;
-                                                }
-                                            } else {
-                                                // Dos fechas válidas: rango BT
-                                                if (operator === 'BT') {
-                                                    return itemDate >= date1 && itemDate <= date2;
-                                                } else {
-                                                    // Otros operadores podrían respetarse igual, o fallback
-                                                    return true;
-                                                }
-                                            }
-
-                                        }
-                                        else {
-                                            let strValue = (itemValue ?? "").toString().toLowerCase();
-                                            let filterValue = (value1 ?? "").toString().toLowerCase();
-                                            let filterValues = filterValue.split(/[\s\*]+/).filter(v => v); // separa por espacios y elimina vacíos
-
-                                            switch (operator) {
-                                                case 'EQ':
-                                                    return filterValues.some(val => strValue === val);
-                                                case 'Contains':
-                                                    return filterValues.every(val => strValue.includes(val));
-                                                case 'StartsWith':
-                                                    return filterValues.some(val => strValue.startsWith(val));
-                                                case 'EndsWith':
-                                                    return filterValues.some(val => strValue.endsWith(val));
-                                                case 'BT':
-                                                    return strValue >= value1 && strValue <= value2; // solo útil si no es fecha
-                                                default:
-                                                    return filterValues.some(val => val.includes(val));
-                                            }
-                                        }
-                                    });
-                                });
-
-                                let originalData = JSON.parse(JSON.stringify(aFiltered));
-
-                                originalData.forEach(item => {
-                                    if (item.ReleaseDate) {
-                                        item.ReleaseDate = formatter.formatDate(item.ReleaseDate);
-                                    }
-                                });
-
-                                let oJSONModel = new JSONModel(originalData);
-                                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
-
-                                tableCols.forEach(col => {
-                                    let sPath = col.template;
-                                    let oTextView = new sap.ui.commons.TextView({
-                                        text: `{${sPath}}`
-                                    });
-
-                                    let oColumn = new sap.ui.table.Column({
-                                        label: new sap.ui.commons.Label({ text: col.label }),
-                                        template: oTextView,
-                                        width: col.width,
-                                        sortProperty: sPath,
-                                    });
-
-                                    oTable.addColumn(oColumn);
-                                });
-
-                                let currentJsonModel = new JSONModel({
-                                    "cols": tableCols
-                                })
-
-                                oTable.setModel(currentJsonModel, "columns");
-                                oTable.setModel(oJSONModel);
-                                oTable.bindRows("/");
-
-                                // Sortear columna de manera ascendente
-                                oTable.attachEventOnce("rowsUpdated", function () {
-                                    let oBinding = oTable.getBinding("rows");
-                                    if (oBinding) {
-                                        let sSortPath = tableCols[4].template; // columna de fecha
-                                        oBinding.sort(new sap.ui.model.Sorter(sSortPath, false)); // false = ascendente, true = descendente
-                                    }
-                                })
-
-                                oFragment.update();
-                                oTable.setBusy(false);
-                                return;
-                            },
-                            error: oError => {
-                                console.log(oError);
-                                oTable.setBusy(false);
+                            } else {
+                                return dItem >= d1 && dItem <= d2;
                             }
-                        })
-                    }
+                        }
 
+                        // Texto
+                        const itemStr = (itemValue || "").toString().toLowerCase();
+                        const filterStr = (v1 || "").toString().toLowerCase();
+
+                        switch (op) {
+                            case "EQ": return itemStr === filterStr;
+                            case "StartsWith": return itemStr.startsWith(filterStr);
+                            case "EndsWith": return itemStr.endsWith(filterStr);
+                            case "Contains": return itemStr.includes(filterStr);
+                            default: return true;
+                        }
+                    });
+                };
+
+                function applyData(oTableRef, data) {
+
+                    const titleMsg = oResourceBundle.getText('items', data.length)
+                    // Limpiar columnas
+                    oTableRef.removeAllColumns();
+                    const tableCols = AppJsonModel.getProperty(`/${inputId}`) || [];
+
+                    tableCols.forEach(col => {
+                        const sPath = col.template;
+                        const column = new sap.ui.table.Column({
+                            label: new sap.ui.commons.Label({ text: col.label }),
+                            template: new sap.ui.commons.TextView({ text: `{${sPath}}` }),
+                            width: col.width,
+                            sortProperty: sPath
+                        });
+                        oTableRef.addColumn(column);
+                    });
+
+                    const oJSON = new JSONModel(data);
+                    oTableRef.setModel(oJSON);
+                    oTableRef.bindRows("/");
+                    oTableRef.setTitle(titleMsg);
+                }
+
+                // ----------------- LÓGICA PRINCIPAL -----------------
+
+                try {
+
+                    // CASO 1 -> Sin filtros → Traer todo del backend
                     if (aFilters.length === 0) {
-                        let oModelProdOrder = MatchcodesService.getOdataModel();
-                        let oFilters = this.getCurrentFilter(inputId);
-                        // let allFilters = [...oFilters, ...aFilters]
-                        let oTable = oFragment.getTable();
-                        oTable.setBusy(true);
 
-                        oModelProdOrder.read('/MatchCodeProductionOrder', {
-                            urlParameters: { "$top": 5000 },
-                            filters: [oFilters],
-
-                            success: (oData) => {
-                                let aData = oData.results;
-
-                                if (aFilters._excludeDelFlag) {
-                                    let cleanValue = statusFilterValue.replace(/^\*+|\*+$/g, "");
-                                    cleanValue.toUpperCase();
-                                    aData = aData.filter(item => (!item.Status.includes(deleteFlagValue) && item.Status.includes(cleanValue)));
-                                }
-
-                                let originalData = JSON.parse(JSON.stringify(aData));
-
-                                originalData.forEach(item => {
-                                    if (item.ReleaseDate) {
-                                        item.ReleaseDate = formatter.formatDate(item.ReleaseDate);
-                                    }
-                                });
-
-                                let oJSONModel = new JSONModel(originalData);
-                                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
-
-                                tableCols.forEach(col => {
-                                    let sPath = col.template;
-                                    let oTextView = new sap.ui.commons.TextView({
-                                        text: `{${sPath}}`
-                                    });
-
-                                    let oColumn = new sap.ui.table.Column({
-                                        label: new sap.ui.commons.Label({ text: col.label }),
-                                        template: oTextView,
-                                        width: col.width
-                                    });
-
-                                    oTable.addColumn(oColumn);
-                                });
-
-                                let currentJsonModel = new JSONModel({
-                                    "cols": tableCols
-                                })
-
-                                oTable.setModel(currentJsonModel, "columns");
-                                oTable.setModel(oJSONModel);
-                                oTable.bindRows("/");
-                                oFragment.update();
-                                oTable.setBusy(false);
-                                return;
-                            },
-                            error: oError => {
-                                console.log(oError);
-                                oTable.setBusy(false);
-                            }
-                        })
-                    }
-
-                    if (aFilters.length && !isStatusRel) {
-                        let oBinding = oFragment.getTable().getBinding("rows");
-
-                        let prevFilters = oBinding.aApplicationFilters || [];
-                        let combinedFilters = [...prevFilters, ...aFilters];
-
-                        let finalFilter = new Filter({
-                            filters: aFilters,
-                            and: false
+                        const oData = await new Promise((resolve, reject) => {
+                            oModelProdOrder.read('/MatchCodeProductionOrder', {
+                                urlParameters: { "$top": 10000 },
+                                filters: [oBaseFilter],
+                                showHeader: false,
+                                success: r => resolve(r.results || []),
+                                error: reject
+                            });
                         });
 
-                        oBinding.filter(finalFilter);
-                        oFragment.update();
+                        applyData(oTable, oData);
                         return;
                     }
 
-                    oBinding.filter([]);
-                    oFragment.update();
-                })
+                    // CASO 2 -> Filtro de Status = REL/LIB/LIB. → filtrado en cliente
+                    if (isClientSideStatus) {
+
+                        const rawData = await new Promise((resolve, reject) => {
+                            oModelProdOrder.read('/MatchCodeProductionOrder', {
+                                urlParameters: { "$top": 10000 },
+                                showHeader: false,
+                                filters: [oBaseFilter],
+                                success: r => resolve(r.results || []),
+                                error: reject
+                            });
+                        });
+
+                        const filtered = await filterInChunks(rawData, aFilters);
+                        applyData(oTable, filtered);
+                        return;
+                    }
+
+                    // CASO 3 -> filtros normales (backend)
+                    const backendFilter = new sap.ui.model.Filter({
+                        filters: aFilters,
+                        and: true
+                    });
+
+                    const oBinding = oTable.getBinding("rows");
+                    oBinding.filter(backendFilter);
+                    const titleMsg = oResourceBundle.getText('items', oBinding.iLength)
+                    oTable.setTitle(titleMsg);
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    oTable.setBusy(false);
+                }
+            },
+
+            _filterProductionOrders: function (aData, aFilters) {
+                return aData.filter(item =>
+                    aFilters.every(oFilter => {
+                        let operator = oFilter.sOperator || 'Contains';
+                        let path = oFilter.sPath;
+                        let itemValue = item[path];
+                        let value1 = oFilter.oValue1 ?? "";
+                        let value2 = oFilter.oValue2 ?? "";
+
+                        // ===== Fechas =====
+                        const isDate = !isNaN(Date.parse(itemValue));
+                        if (isDate) {
+                            let dItem = new Date(itemValue);
+                            let d1 = new Date(value1);
+                            let d2 = new Date(value2);
+
+                            switch (operator) {
+                                case 'EQ': return dItem.toDateString() === d1.toDateString();
+                                case 'GT': return dItem > d1;
+                                case 'LT': return dItem < d1;
+                                case 'BT': return dItem >= d1 && dItem <= d2;
+                            }
+                            return true;
+                        }
+
+                        // ===== Strings =====
+                        let str = (itemValue ?? "").toString().toLowerCase();
+                        let values = (value1 ?? "").toString().toLowerCase()
+                            .split(/[\s\*]+/).filter(v => v);
+
+                        switch (operator) {
+                            case 'EQ': return values.some(v => str === v);
+                            case 'StartsWith': return values.some(v => str.startsWith(v));
+                            case 'EndsWith': return values.some(v => str.endsWith(v));
+                            case 'Contains': return values.every(v => str.includes(v));
+                            default: return true;
+                        }
+                    })
+                );
+            },
+
+            _applyProdOrderTableData: function (oTable, aData) {
+
+                let cleanData = aData.map(item => {
+                    let clone = { ...item };
+                    if (clone.ReleaseDate) {
+                        clone.ReleaseDate = formatter.formatDate(clone.ReleaseDate);
+                    }
+                    return clone;
+                });
+
+                let oJSONModel = new JSONModel(cleanData);
+                let tableCols = AppJsonModel.getProperty(`/${inputId}`);
+
+                // limpiar columnas anteriores
+                oTable.removeAllColumns();
+
+                tableCols.forEach(col => {
+                    oTable.addColumn(
+                        new sap.ui.table.Column({
+                            label: col.label,
+                            template: new sap.ui.commons.TextView({ text: `{${col.template}}` }),
+                            width: col.width,
+                            sortProperty: col.template
+                        })
+                    );
+                });
+
+                oTable.setModel(oJSONModel);
+                // oTable.setModel(new JSONModel({ cols: tableCols }), "columns");
+                oTable.bindRows("/");
+
+                // sort inicial
+                oTable.attachEventOnce("rowsUpdated", () => {
+                    let binding = oTable.getBinding("rows");
+                    if (binding) {
+                        let sortPath = tableCols[4].template;
+                        binding.sort(new sap.ui.model.Sorter(sortPath, false));
+                    }
+                });
             },
 
             onValueHelpRequestWorkCenter: function (oEvent) {
@@ -2472,18 +2577,24 @@ sap.ui.define([
             },
 
             onQuantityInputLiveChange: function (oEvent) {
-                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
-                const noDataText = oResourceBundle.getText('noData')
+
                 const defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 const currValue = oEvent.getParameter('value');
                 const bomModel = this.getOwnerComponent().getModel('boomData');
-                const bomTable = this.byId("bomTable");
+                // const bomTable = this.byId("bomTable");
 
                 if (!currValue.trim()) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
-                    bomModel.setData({});
-                    bomTable.setNoDataText(noDataText);
+                    bomModel.getData().forEach(cell => cell.CompQty = '')
+                    bomModel.updateBindings()
+                    return;
+                }
+
+                if (currValue === '0') {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+                    this.getBoomMaterials();
                     return;
                 }
 
@@ -2524,6 +2635,7 @@ sap.ui.define([
                 let defectInfoKeys = Object.keys(defectInfo);
                 let filterInfo = defectInfoKeys.filter(item => item !== "UnitOfMeasure" && item !== "SerialNumber" && item !== "DefectCode");
                 let equipmentStateError = this.byId('Equipment').getValueState();
+                let quantityInputValue = this.byId('Quantity').getValue();
 
                 let emptyInputs = 0;
                 for (let key of filterInfo) {
@@ -2569,7 +2681,7 @@ sap.ui.define([
                     return;
                 }
 
-                if ((!emptyInputs && boomForSave.length === 0) || emptyInputs) {
+                if ((!emptyInputs && boomForSave.length === 0) || emptyInputs || quantityInputValue === '0') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
                 }
@@ -2618,5 +2730,4 @@ sap.ui.define([
                 oMessagePopover.toggle(oEvent.getSource());
             }
         });
-
     });
