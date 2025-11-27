@@ -636,7 +636,7 @@ sap.ui.define([
                             const cols = AppJsonModel.getProperty('/ProductionOrder')
                             const colsModel = new JSONModel({ "cols": cols })
                             oTable.setModel(colsModel, "columns");
-                            
+
                             // if (oTable.bindRows) {
                             //     oTable.bindAggregation("rows", {
                             //         path: '/MatchCodeProductionOrder',
@@ -2724,6 +2724,20 @@ sap.ui.define([
                 if (emptyInputs > 0) return true;
 
                 return false;
+            },
+
+            onOperatorNumber: function (oEvent) {
+                const currentOpNumber = oEvent.getParameter('value').trim();
+                if (!currentOpNumber) return;
+
+                this.checkOperatorNumber(currentOpNumber);
+            },
+
+            checkOperatorNumber: function (opNumber) {
+                if (opNumber.length > 4) {
+                    this.byId('OperatorNumber').setValueState("Error");
+                    this.byId('OperatorNumber').setValueStateText(`${opNumber} is not a valid operator number`);
+                }
             },
 
             handleMessagePopoverPress: function (oEvent) {

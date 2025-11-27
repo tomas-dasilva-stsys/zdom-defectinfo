@@ -105,31 +105,19 @@
                             </FlexBox>
                         </VBox>
 
-                        <!-- WORKCENTER  -->
+                        <!-- OPERATOR NUMBER -->
                         <VBox>
                             <Label
-                                text="{i18n>workcenter}"
+                                text="Operator number"
                                 required="true"
-                                labelFor="WorkCenter"
+                                labelFor="OperatorNumber"
                             />
                             <Input
-                                id="WorkCenter"
-                                name="WorkCenter"
-                                showValueHelp="{AppJsonModel>/Editable/ShowValueHelp}"
-                                enabled="{AppJsonModel>/Enabled/WorkCenter}"
-                                editable="{AppJsonModel>/Editable/WorkCenter}"
-                                valueHelpRequest=".onValueHelpRequestWorkCenter"
-                                valueStateText="{i18n>workcenter} {i18n>requiredField}"
-                                required="true"
-                                submit="submitValue"
-                                change="onInputChange"
-                                value="{AppJsonModel>/DefectInfo/WorkCenter}"
-                                maxLength="8"
-                            >
-                                <suggestionItems>
-                                    <core:Item text="{Name}" />
-                                </suggestionItems>
-                            </Input>
+                                id="OperatorNumber"
+                                maxLength="12"
+                                submit="onOperatorNumber"
+                                liveChange="onLiveChange"
+                            />
                         </VBox>
 
                         <!-- EQUIPMENT -->
@@ -179,24 +167,26 @@
                             />
                         </VBox>
 
-                        <!-- PRODUCTION ORDER -->
+                        <!-- WORKCENTER  -->
                         <VBox>
                             <Label
-                                text="{i18n>productionOrder}"
+                                text="{i18n>workcenter}"
                                 required="true"
-                                labelFor="ProductionOrder"
+                                labelFor="WorkCenter"
                             />
                             <Input
-                                id="ProductionOrder"
-                                name="ProductionOrder"
-                                showSuggestion="true"
-                                showValueHelp="true"
-                                valueHelpRequest=".onValueHelpRequestProductionOrder"
-                                valueStateText="{i18n>productionOrder} {i18n>requiredField}"
+                                id="WorkCenter"
+                                name="WorkCenter"
+                                showValueHelp="{AppJsonModel>/Editable/ShowValueHelp}"
+                                enabled="{AppJsonModel>/Enabled/WorkCenter}"
+                                editable="{AppJsonModel>/Editable/WorkCenter}"
+                                valueHelpRequest=".onValueHelpRequestWorkCenter"
+                                valueStateText="{i18n>workcenter} {i18n>requiredField}"
                                 required="true"
-                                change="onInputChange"
                                 submit="submitValue"
-                                value="{AppJsonModel>/DefectInfo/ProductionOrder}"
+                                change="onInputChange"
+                                value="{AppJsonModel>/DefectInfo/WorkCenter}"
+                                maxLength="8"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
@@ -284,26 +274,24 @@
                             </FlexBox>
                         </VBox>
 
-                        <!-- MATERIAL -->
+                        <!-- PRODUCTION ORDER -->
                         <VBox>
                             <Label
-                                text="{i18n>material}"
+                                text="{i18n>productionOrder}"
                                 required="true"
-                                labelFor="Material"
+                                labelFor="ProductionOrder"
                             />
                             <Input
-                                id="Material"
-                                name="Material"
-                                showValueHelp="true"
+                                id="ProductionOrder"
+                                name="ProductionOrder"
                                 showSuggestion="true"
-                                valueHelpRequest=".onValueHelpRequest"
-                                valueStateText="{i18n>material} {i18n>requiredField}"
+                                showValueHelp="true"
+                                valueHelpRequest=".onValueHelpRequestProductionOrder"
+                                valueStateText="{i18n>productionOrder} {i18n>requiredField}"
                                 required="true"
                                 change="onInputChange"
                                 submit="submitValue"
-                                value="{AppJsonModel>/DefectInfo/Material}"
-                                enabled="{AppJsonModel>/Enabled/Material}"
-                                liveChange="onLiveChange"
+                                value="{AppJsonModel>/DefectInfo/ProductionOrder}"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
@@ -341,6 +329,7 @@
                                         required="true"
                                         change="onInputChange"
                                         submit="submitValue"
+                                        liveChange="onLiveChange"
                                         maxLength="4"
                                     >
                                         <suggestionItems>
@@ -374,23 +363,35 @@
                             </Input>
                         </VBox>
 
-                        <!-- OPERARIO -->
-                        <!-- <VBox>
+                        <!-- MATERIAL -->
+                        <VBox>
                             <Label
-                                text="Operario"
-                                labelFor="SerialNumber"
+                                text="{i18n>material}"
+                                required="true"
+                                labelFor="Material"
                             />
                             <Input
-                                name="Operario"
-                                editable="false"
+                                id="Material"
+                                name="Material"
+                                showValueHelp="true"
+                                showSuggestion="true"
+                                valueHelpRequest=".onValueHelpRequest"
+                                valueStateText="{i18n>material} {i18n>requiredField}"
+                                required="true"
+                                change="onInputChange"
+                                submit="submitValue"
+                                value="{AppJsonModel>/DefectInfo/Material}"
+                                enabled="{AppJsonModel>/Enabled/Material}"
+                                liveChange="onLiveChange"
                             >
                                 <suggestionItems>
                                     <core:Item text="{Name}" />
                                 </suggestionItems>
                             </Input>
-                        </VBox> -->
+                        </VBox>
+
                         <VBox />
-                        <VBox />
+
                         <!-- CHECK -->
                         <VBox>
                             <CheckBox
