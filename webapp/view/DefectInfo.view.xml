@@ -114,7 +114,7 @@
                             />
                             <Input
                                 id="OperatorNumber"
-                                maxLength="12"
+                                maxLength="8"
                                 submit="onOperatorNumber"
                                 liveChange="onLiveChange"
                             />
