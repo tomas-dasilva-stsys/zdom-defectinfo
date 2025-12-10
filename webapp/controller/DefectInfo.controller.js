@@ -842,7 +842,7 @@ sap.ui.define([
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            {},
+                            { "$top": 5000, "$skip": 0 },
                             [oBaseFilter]
                         );
                         applyData(oTable, rawData);
@@ -851,11 +851,10 @@ sap.ui.define([
 
                     // === 2) Filtro especial de Status → filtrado del lado del cliente ===
                     if (isClientSideStatus) {
-
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            {},
+                            { "$top": 5000, "$skip": 0 },
                             [oBaseFilter]
                         );
 
