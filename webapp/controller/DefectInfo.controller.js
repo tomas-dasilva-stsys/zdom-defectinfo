@@ -2856,6 +2856,7 @@ sap.ui.define([
                 let defectInfoKeys = Object.keys(defectInfo);
                 let filterInfo = defectInfoKeys.filter(item => item !== "UnitOfMeasure" && item !== "SerialNumber" && item !== "DefectCode");
                 let equipmentStateError = this.byId('Equipment').getValueState();
+                let opNumberStateError = this.byId('OperatorNumber').getValueState();
                 let quantityInputValue = this.byId('Quantity').getValue();
 
                 let emptyInputs = 0;
@@ -2897,7 +2898,7 @@ sap.ui.define([
                     return;
                 }
 
-                if (equipmentStateError === 'Error') {
+                if (equipmentStateError === 'Error' || opNumberStateError === 'Error') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
                 }
@@ -2966,6 +2967,7 @@ sap.ui.define([
                         if (operatorData.results.length === 0) {
                             this.byId('OperatorNumber').setValueState('Error')
                             this.byId('OperatorNumber').setValueStateText(`Operador ${opNumber} no existe`)
+                            this.toggleSaveButton()
                             return;
                         }
                     })

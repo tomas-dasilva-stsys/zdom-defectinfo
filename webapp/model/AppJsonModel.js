@@ -36,6 +36,7 @@ sap.ui.define([
                     "RepairCode": "",
                     "UnitOfMeasure": "",
                     "Quantity": "1",
+                    "OperatorNumber": "",
                 },
                 "Plant": [{
                     "label": "{i18n>plant}",
