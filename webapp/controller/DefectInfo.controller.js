@@ -664,6 +664,189 @@ sap.ui.define([
                 })
             },
 
+            // onFilterBarSearchProductionOrder: async function (oEvent) {
+
+            //     const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+            //     const statusFilterValue = oResourceBundle.getText('statusFilterValue');
+            //     const deleteFlagValue = oResourceBundle.getText('deleteFlagValue');
+            //     const statusOptions = ['REL', 'LIB', 'LIB.'];
+
+            //     const aSelectionSet = oEvent.getParameter("selectionSet");
+
+            //     const releaseDate = new Date(aSelectionSet[2]?.getValue());
+            //     let releaseDateTo = new Date(aSelectionSet[3]?.getValue());
+            //     if (!releaseDateTo.getDate()) releaseDateTo = releaseDate;
+
+            //     // Filtros del usuario
+            //     const aFilters = this.setProdOrderFilters(aSelectionSet, releaseDate, releaseDateTo);
+
+            //     // Detectar si se filtró por Status con valores REL/LIB/LIB.
+            //     const userStatusFilter = aSelectionSet[1]?.getValue?.() || "";
+            //     const cleanStatusFilter = userStatusFilter?.replace(/^\*+|\*+$/g, "");
+            //     const isClientSideStatus = statusOptions.includes(cleanStatusFilter.toUpperCase().trim());
+
+            //     // Obtener fragment y tabla
+            //     const oFragment = await this.getFragment('ProductionOrderHelpDialog');
+            //     const oTable = await oFragment.getTableAsync();
+            //     const oModelProdOrder = MatchcodesService.getOdataModel();
+            //     const oBaseFilter = this.getCurrentFilter(inputId);
+
+            //     // Busy inmediato
+            //     oTable.setBusyIndicatorDelay(0);
+            //     oTable.setBusy(true);
+
+            //     // Mostrar el dialog
+            //     if (!oFragment.isOpen || !oFragment.isOpen()) {
+            //         oFragment.open();
+            //     }
+
+            //     // ----------------- Helpers -----------------
+
+            //     const filterInChunks = (aData, aFilters, chunkSize = 500) => {
+            //         return new Promise(resolve => {
+            //             const result = [];
+            //             let index = 0;
+
+            //             const processChunk = () => {
+            //                 const end = Math.min(index + chunkSize, aData.length);
+
+            //                 for (; index < end; index++) {
+            //                     const item = aData[index];
+            //                     if (_itemMatches(item, aFilters)) result.push(item);
+            //                 }
+            //                 if (index < aData.length) {
+            //                     setTimeout(processChunk, 0);
+            //                 } else {
+            //                     resolve(result);
+            //                 }
+            //             }
+
+            //             processChunk();
+            //         });
+            //     };
+
+            //     const _itemMatches = (item, filters) => {
+            //         return filters.every(f => {
+
+            //             const op = f.sOperator || "Contains";
+            //             const path = f.sPath;
+            //             const itemValue = item[path];
+            //             const v1 = f.oValue1;
+            //             const v2 = f.oValue2;
+
+            //             // Fecha
+            //             const isDate = !isNaN(Date.parse(itemValue));
+            //             if (isDate) {
+            //                 const dItem = new Date(itemValue);
+            //                 const d1 = new Date(v1);
+            //                 const d2 = v2 ? new Date(v2) : null;
+
+            //                 if (!d2 || isNaN(d2)) {
+            //                     switch (op) {
+            //                         case "EQ": return dItem.toDateString() === d1.toDateString();
+            //                         case "GT": return dItem > d1;
+            //                         case "LT": return dItem < d1;
+            //                         default: return true;
+            //                     }
+            //                 } else {
+            //                     return dItem >= d1 && dItem <= d2;
+            //                 }
+            //             }
+
+            //             // Texto
+            //             const itemStr = (itemValue || "").toString().toLowerCase();
+            //             const filterStr = (v1 || "").toString().toLowerCase();
+
+            //             switch (op) {
+            //                 case "EQ": return itemStr === filterStr;
+            //                 case "StartsWith": return itemStr.startsWith(filterStr);
+            //                 case "EndsWith": return itemStr.endsWith(filterStr);
+            //                 case "Contains": return itemStr.includes(filterStr);
+            //                 default: return true;
+            //             }
+            //         });
+            //     };
+
+            //     function applyData(oTableRef, data) {
+
+            //         const titleMsg = oResourceBundle.getText('items', data.length)
+            //         // Limpiar columnas
+            //         oTableRef.removeAllColumns();
+            //         const tableCols = AppJsonModel.getProperty(`/${inputId}`) || [];
+
+            //         tableCols.forEach(col => {
+            //             const sPath = col.template;
+            //             const column = new sap.ui.table.Column({
+            //                 label: new sap.ui.commons.Label({ text: col.label }),
+            //                 template: new sap.ui.commons.TextView({ text: `{${sPath}}` }),
+            //                 width: col.width,
+            //                 sortProperty: sPath
+            //             });
+            //             oTableRef.addColumn(column);
+            //         });
+
+            //         const oJSON = new JSONModel(data);
+            //         oTableRef.setModel(oJSON);
+            //         oTableRef.bindRows("/");
+            //         oTableRef.setTitle(titleMsg);
+            //     }
+
+            //     // ----------------- LÓGICA PRINCIPAL -----------------
+
+            //     try {
+
+            //         // CASO 1 -> Sin filtros → Traer todo del backend
+            //         if (aFilters.length === 0) {
+
+            //             const oData = await new Promise((resolve, reject) => {
+            //                 oModelProdOrder.read('/MatchCodeProductionOrder', {
+            //                     urlParameters: { "$top": 10000 },
+            //                     filters: [oBaseFilter],
+            //                     showHeader: false,
+            //                     success: r => resolve(r.results || []),
+            //                     error: reject
+            //                 });
+            //             });
+
+            //             applyData(oTable, oData);
+            //             return;
+            //         }
+
+            //         // CASO 2 -> Filtro de Status = REL/LIB/LIB. → filtrado en cliente
+            //         if (isClientSideStatus) {
+
+            //             const rawData = await new Promise((resolve, reject) => {
+            //                 oModelProdOrder.read('/MatchCodeProductionOrder', {
+            //                     urlParameters: { "$top": 10000 },
+            //                     showHeader: false,
+            //                     filters: [oBaseFilter],
+            //                     success: r => resolve(r.results || []),
+            //                     error: reject
+            //                 });
+            //             });
+
+            //             const filtered = await filterInChunks(rawData, aFilters);
+            //             applyData(oTable, filtered);
+            //             return;
+            //         }
+
+            //         // CASO 3 -> filtros normales (backend)
+            //         const backendFilter = new sap.ui.model.Filter({
+            //             filters: aFilters,
+            //             and: true
+            //         });
+
+            //         const oBinding = oTable.getBinding("rows");
+            //         oBinding.filter(backendFilter);
+            //         const titleMsg = oResourceBundle.getText('items', oBinding.iLength)
+            //         oTable.setTitle(titleMsg);
+            //     } catch (err) {
+            //         console.error(err);
+            //     } finally {
+            //         oTable.setBusy(false);
+            //     }
+            // },
+
             onFilterBarSearchProductionOrder: async function (oEvent) {
 
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
@@ -2762,6 +2945,30 @@ sap.ui.define([
                 if (emptyInputs > 0) return true;
 
                 return false;
+            },
+
+            onOperatorNumber: function (oEvent) {
+                const currentOpNumber = oEvent.getParameter('value').trim();
+                if (!currentOpNumber) return;
+
+                this.checkOperatorNumber(currentOpNumber);
+            },
+
+            checkOperatorNumber: function (opNumber) {
+                const currentPlant = AppJsonModel.getProperty('/DefectInfo').Plant
+                const filterName = currentPlant === 'PT10' ? 'empl_code2' : 'empl_code'
+
+
+                const filter = new Filter(filterName, FilterOperator.EQ, opNumber)
+
+                MatchcodesService.callGetService('/CheckPernr', [filter])
+                    .then(operatorData => {
+                        if (operatorData.results.length === 0) {
+                            this.byId('OperatorNumber').setValueState('Error')
+                            this.byId('OperatorNumber').setValueStateText(`Operador ${opNumber} no existe`)
+                            return;
+                        }
+                    })
             },
 
             handleMessagePopoverPress: function (oEvent) {
