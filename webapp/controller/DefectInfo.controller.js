@@ -898,9 +898,10 @@ sap.ui.define([
 
                     let all = [];
                     let next = entitySet;
+                    let firstCall = true;
 
                     while (next) {
-                        const data = await _read(next);
+                        const data = await _read(next, firstCall ? params : {});
 
                         if (data.results) {
                             all.push(...data.results);
@@ -920,6 +921,8 @@ sap.ui.define([
                                 next = clean.startsWith("/") ? clean : "/" + clean;
                             }
                         }
+
+                        firstCall = false
                     }
 
                     return all;
@@ -1025,7 +1028,7 @@ sap.ui.define([
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            {},
+                            { "$top": 5000, "$skip": 0 },
                             [oBaseFilter]
                         );
                         applyData(oTable, rawData);
@@ -1034,11 +1037,10 @@ sap.ui.define([
 
                     // === 2) Filtro especial de Status → filtrado del lado del cliente ===
                     if (isClientSideStatus) {
-
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            {},
+                            { "$top": 5000, "$skip": 0 },
                             [oBaseFilter]
                         );
 
