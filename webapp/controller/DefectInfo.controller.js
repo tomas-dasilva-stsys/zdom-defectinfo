@@ -715,9 +715,10 @@ sap.ui.define([
 
                     let all = [];
                     let next = entitySet;
+                    let firstCall = true;
 
                     while (next) {
-                        const data = await _read(next);
+                        const data = await _read(next, firstCall ? params : {});
 
                         if (data.results) {
                             all.push(...data.results);
@@ -737,6 +738,8 @@ sap.ui.define([
                                 next = clean.startsWith("/") ? clean : "/" + clean;
                             }
                         }
+
+                        firstCall = false
                     }
 
                     return all;
