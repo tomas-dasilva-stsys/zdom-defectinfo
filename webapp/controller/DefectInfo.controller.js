@@ -1028,7 +1028,7 @@ sap.ui.define([
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            { "$top": 5000, "$skip": 0 },
+                            { "$top": 50000, "$skip": 0 },
                             [oBaseFilter]
                         );
                         applyData(oTable, rawData);
@@ -1040,7 +1040,7 @@ sap.ui.define([
                         const rawData = await readAllOData(
                             oModel,
                             "/MatchCodeProductionOrder",
-                            { "$top": 5000, "$skip": 0 },
+                            { "$top": 50000, "$skip": 0 },
                             [oBaseFilter]
                         );
 
@@ -2778,11 +2778,6 @@ sap.ui.define([
                     return;
                 }
 
-                // if (currId === 'Quantity' && (defectInfo.ProductionOrder && defectInfo.ProductOrderOperation)) {
-                //     this.getBoomMaterials();
-                //     return
-                // }
-
                 if (currId === 'WorkCenter') {
                     this.byId(currId).setValue(oEvent.getParameter("value").toUpperCase());
                     this.byId(currId).setValueState("None");
@@ -2956,6 +2951,7 @@ sap.ui.define([
             },
 
             checkOperatorNumber: function (opNumber) {
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const currentPlant = AppJsonModel.getProperty('/DefectInfo').Plant
                 const filterName = currentPlant === 'PT10' ? 'empl_code2' : 'empl_code'
 
@@ -2965,8 +2961,9 @@ sap.ui.define([
                 MatchcodesService.callGetService('/CheckPernr', [filter])
                     .then(operatorData => {
                         if (operatorData.results.length === 0) {
+                            const noOpNumber = oResourceBundle.getText('noOperatorNumber', opNumber);
                             this.byId('OperatorNumber').setValueState('Error')
-                            this.byId('OperatorNumber').setValueStateText(`Operador ${opNumber} no existe`)
+                            this.byId('OperatorNumber').setValueStateText(noOpNumber)
                             this.toggleSaveButton()
                             return;
                         }

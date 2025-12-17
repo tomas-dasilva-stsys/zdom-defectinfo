@@ -108,7 +108,7 @@
                         <!-- OPERATOR NUMBER -->
                         <VBox>
                             <Label
-                                text="Operator number"
+                                text="{i18n>operatorNumber}"
                                 required="true"
                                 labelFor="OperatorNumber"
                             />
