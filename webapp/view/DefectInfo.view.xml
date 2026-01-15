@@ -116,7 +116,7 @@
                                 id="OperatorNumber"
                                 maxLength="8"
                                 submit="onOperatorNumber"
-                                liveChange="onLiveChange"
+                                change="onInputChange"
                                 value="{AppJsonModel>/DefectInfo/OperatorNumber}"
                             />
                         </VBox>

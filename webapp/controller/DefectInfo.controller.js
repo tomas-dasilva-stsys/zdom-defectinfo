@@ -2787,6 +2787,13 @@ sap.ui.define([
                     return;
                 }
 
+                if (currId === 'OperatorNumber') {
+                    if (!currValue.trim()) return ;
+
+                    this.checkOperatorNumber(currValue);
+                    return;
+                }
+
                 if (currValue) {
                     this.byId(currId).setValueState("None");
                 }
@@ -2967,6 +2974,11 @@ sap.ui.define([
                             this.toggleSaveButton()
                             return;
                         }
+
+                         this.byId('OperatorNumber').setValueState('None')
+                         this.byId('OperatorNumber').setValueStateText('')
+                         this.toggleSaveButton();
+                         return;
                     })
             },
 
