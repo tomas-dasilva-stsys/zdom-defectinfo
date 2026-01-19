@@ -453,7 +453,15 @@
                                     class="sapUiTinyMarginTopBottom"
                                 />
                                 <Text text="{boomData>CompQty}" />
-                                <Text text="{boomData>Charg}" />
+                                <Select
+                                    selectedKey="{boomData>Charg}"
+                                    enabled="{= ${boomData>Charg} !== '' }"
+                                    >
+                                    <items>
+                                        <core:Item key="{boomData>Charg}" text="{boomData>Charg}" />
+                                    </items>
+                                </Select>
+                                <!-- <Text text="{boomData>Charg}" /> -->
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
                             </cells>

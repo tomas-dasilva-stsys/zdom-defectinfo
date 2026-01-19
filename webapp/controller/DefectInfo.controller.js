@@ -2411,6 +2411,7 @@ sap.ui.define([
                     IvCauseCodegruppe: defectInfoValues.CauseCodeGruppe,
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
+                    IvEmplCode: defectInfoValues.OperatorNumber,
                     EvAufnr: defectInfoValues.ProductionOrder,
                     BomItemSet: boomForSave.map((boomItem, index) => {
                         return {
