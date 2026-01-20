@@ -2789,7 +2789,7 @@ sap.ui.define([
                 }
 
                 if (currId === 'OperatorNumber') {
-                    if (!currValue.trim()) return ;
+                    if (!currValue.trim()) return;
 
                     this.checkOperatorNumber(currValue);
                     return;
@@ -2961,12 +2961,16 @@ sap.ui.define([
             checkOperatorNumber: function (opNumber) {
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const currentPlant = AppJsonModel.getProperty('/DefectInfo').Plant
-                const filterName = currentPlant === 'PT10' ? 'empl_code2' : 'empl_code'
+                let aFilter;
 
+                if (currentPlant === 'PT10') {
+                    let combinedFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber), new Filter('subty', FilterOperator.EQ, '0009')]
+                    aFilter = combinedFilter;
+                } else {
+                    aFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber)];
+                }
 
-                const filter = new Filter(filterName, FilterOperator.EQ, opNumber)
-
-                MatchcodesService.callGetService('/CheckPernr', [filter])
+                MatchcodesService.callGetService('/CheckPernr', aFilter)
                     .then(operatorData => {
                         if (operatorData.results.length === 0) {
                             const noOpNumber = oResourceBundle.getText('noOperatorNumber', opNumber);
@@ -2976,10 +2980,10 @@ sap.ui.define([
                             return;
                         }
 
-                         this.byId('OperatorNumber').setValueState('None')
-                         this.byId('OperatorNumber').setValueStateText('')
-                         this.toggleSaveButton();
-                         return;
+                        this.byId('OperatorNumber').setValueState('None')
+                        this.byId('OperatorNumber').setValueStateText('')
+                        this.toggleSaveButton();
+                        return;
                     })
             },
 
