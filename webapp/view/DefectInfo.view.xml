@@ -456,11 +456,14 @@
                                 <Select
                                     selectedKey="{boomData>SelectedCharg}"
                                     visible="{= ${boomData>ChargList}.length > 1 }"
-                                    items="{boomData>ChargList}"
+                                    items="{ path: 'boomData>ChargList', templateShareable: false }"
                                     width="100%"
-                                    >
+                                >
                                     <items>
-                                        <core:Item key="{boomData>Charg}" text="{boomData>Charg}" />
+                                        <core:Item
+                                            key="{boomData>Charg}"
+                                            text="{boomData>Charg}"
+                                        />
                                     </items>
                                 </Select>
                                 <!-- <Text text="{boomData>Charg}" visible="{= ${boomData>ChargList}.length == 1 }"/> -->

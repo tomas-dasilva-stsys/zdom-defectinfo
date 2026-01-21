@@ -1005,7 +1005,7 @@ sap.ui.define([
 
                 function applyData(oTableRef, data) {
 
-                    const titleMsg = oResourceBundle.getText('items', data.length);
+                    const titleMsg = oResourceBundle.getText('items', [data.length]);
 
                     oTableRef.removeAllColumns();
 
@@ -1069,7 +1069,7 @@ sap.ui.define([
                     const oBinding = oTable.getBinding("rows");
                     oBinding.filter(backendFilter);
 
-                    const titleMsg = oResourceBundle.getText('items', oBinding.iLength);
+                    const titleMsg = oResourceBundle.getText('items', [oBinding.iLength]);
                     oTable.setTitle(titleMsg);
 
                 } catch (err) {
@@ -1414,7 +1414,7 @@ sap.ui.define([
 
             onExitDialog: function () {
                 this.getFragment(`${inputId}HelpDialog`).then(function (oFragment) {
-                    oFragment.close();
+                    oFragment.exit();
                 });
 
                 this.destroyFragments();
@@ -2431,6 +2431,7 @@ sap.ui.define([
                                     existingComponent.BinEwm = objValues.BinEwm;
                                     existingComponent.WhEwm = objValues.WhEwm;
                                     existingComponent.Message = objValues.Message;
+                                    existingComponent.CompQty = objValues.CompQty;
                                 }
                             } else {
                                 // Si es nuevo, crear el objeto con la lista de Charg
@@ -2916,7 +2917,11 @@ sap.ui.define([
                 }
 
                 if (currId === 'OperatorNumber') {
-                    if (!currValue.trim()) return;
+                    if (!currValue.trim()) {
+                        this.byId(currId).setValueState("None");
+                        this.byId(currId).setValueStateText('');
+                        return
+                    }
 
                     this.checkOperatorNumber(currValue);
                     return;
@@ -2927,35 +2932,74 @@ sap.ui.define([
                 }
             },
 
-            onQuantityInputLiveChange: function (oEvent) {
+            // onQuantityInputLiveChange: function (oEvent) {
 
+            //     const defectInfo = AppJsonModel.getProperty('/DefectInfo');
+            //     const currValue = oEvent.getParameter('value');
+            //     const bomModel = this.getOwnerComponent().getModel('boomData');
+            //     // const bomTable = this.byId("bomTable");
+
+            //     if (!currValue.trim()) {
+            //         AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+            //         AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+            //         bomModel.getData().forEach(cell => cell.CompQty = '')
+            //         bomModel.updateBindings()
+            //         return;
+            //     }
+
+            //     if (currValue === '0') {
+            //         AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+            //         AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+            //         this.getBoomMaterials();
+            //         return;
+            //     }
+
+            //     if (defectInfo.ProductionOrder && defectInfo.ProductOrderOperation && currValue) {
+            //         setTimeout(() => {
+            //             AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
+            //             // AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
+            //             this.getBoomMaterials();
+            //             return;
+            //         }, 300);
+            //     }
+            // },
+
+            onQuantityInputLiveChange: function (oEvent) {
                 const defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 const currValue = oEvent.getParameter('value');
                 const bomModel = this.getOwnerComponent().getModel('boomData');
-                // const bomTable = this.byId("bomTable");
 
+                // 1) Limpio timeout anterior si existe
+                if (this._quantityDebounceTimer) {
+                    clearTimeout(this._quantityDebounceTimer);
+                    this._quantityDebounceTimer = null;
+                }
+
+                // 2) Casos inmediatos (no debounced)
                 if (!currValue.trim()) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
-                    bomModel.getData().forEach(cell => cell.CompQty = '')
-                    bomModel.updateBindings()
+                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue);
+                    bomModel.getData().forEach(cell => cell.CompQty = '');
+                    bomModel.updateBindings();
                     return;
                 }
 
                 if (currValue === '0') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
-                    this.getBoomMaterials();
+                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue);
+                    this.getBoomMaterials(); // este sí querés que dispare instantáneo
                     return;
                 }
 
+                // 3) Lógica debounced
                 if (defectInfo.ProductionOrder && defectInfo.ProductOrderOperation && currValue) {
-                    AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue)
-                    // AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
-                    this.getBoomMaterials();
-                    return;
+                    this._quantityDebounceTimer = setTimeout(() => {
+                        AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue);
+                        this.getBoomMaterials();
+                    }, 500);
                 }
             },
+
 
             setMessageType: function (oMessage) {
                 switch (oMessage) {
@@ -3101,7 +3145,7 @@ sap.ui.define([
                 MatchcodesService.callGetService('/CheckPernr', aFilter)
                     .then(operatorData => {
                         if (operatorData.results.length === 0) {
-                            const noOpNumber = oResourceBundle.getText('noOperatorNumber', opNumber);
+                            const noOpNumber = oResourceBundle.getText('noOperatorNumber', [opNumber]);
                             this.byId('OperatorNumber').setValueState('Error')
                             this.byId('OperatorNumber').setValueStateText(noOpNumber)
                             this.toggleSaveButton()
