@@ -12,6 +12,7 @@ sap.ui.define([
     "zdom/zdom/services/MatchcodesService",
     "zdom/zdom/model/AppJsonModel",
     "zdom/zdom/model/formatter",
+    "sap/m/MessageToast",
 ],
     function (Controller,
         JSONModel,
@@ -25,7 +26,9 @@ sap.ui.define([
         Service,
         MatchcodesService,
         AppJsonModel,
-        formatter) {
+        formatter,
+        MessageToast,
+    ) {
         "use strict";
         let inputId;
         let materialFilters = [];
@@ -49,8 +52,6 @@ sap.ui.define([
             formatter: formatter,
             oFragments: {},
 
-            // comentario de test
-
             onInit: function () {
                 AppJsonModel.initializeModel();
                 let sLocale = sap.ui.getCore().getConfiguration().getLanguage();
@@ -72,6 +73,16 @@ sap.ui.define([
                 oMessagePopover.setModel(popModel);
 
                 this.toggleSaveButton();
+
+                // if (sap.ushell && sap.ushell.Container) {
+                //     let oUser = sap.ushell.Container.getService("UserInfo");
+                //     let sUserId = oUser.getId();
+                //     let sFullName = oUser.getFullName();
+                //     let sEmail = oUser.getEmail();
+
+                //     console.log("Usuario ID: " + sUserId);
+                //     console.log("Nombre completo: " + sFullName);
+                // }
 
                 let defaultValues = {
                     Zuser: '',
@@ -2272,6 +2283,77 @@ sap.ui.define([
                 ];
 
                 bomTable.setBusy(true);
+                // oModel.read("/ZfmGetBomSet", {
+                //     filters: aFilters,
+                //     success: function (data) {
+                //         let boomDataValues = [];
+                //         materialFilters = [];
+                //         batchFilters = [];
+                //         boomForSave = [];
+
+                //         if (data.results.length === 0) {
+                //             jsonModel.setData(boomDataValues);
+                //             saveBtn.setEnabled(false);
+                //             sap.m.MessageBox.show(`No hay materiales asociados a la orden ${currentProdOrder}`)
+                //             return;
+                //         }
+
+                //         let objNames = Object.keys(data.results[0]);
+
+                //         for (let i = 0; i < data.results.length; i++) {
+                //             let objValues = {
+                //                 CompUnit: data.results[i][objNames[1]],
+                //                 ProdOrder: data.results[i][objNames[2]],
+                //                 WorkCtr: data.results[i][objNames[3]],
+                //                 ComplainQty: data.results[i][objNames[4]],
+                //                 ProdOrderOpPlan: data.results[i][objNames[5]],
+                //                 ReturnLog: data.results[i][objNames[6]],
+                //                 ItemNo: data.results[i][objNames[7]],
+                //                 Component: data.results[i][objNames[8]],
+                //                 CompQty: data.results[i][objNames[9]],
+                //                 Charg: data.results[i][objNames[10]],
+                //                 Licha: data.results[i][objNames[11]],
+                //                 IssueLoc: data.results[i][objNames[12]],
+                //                 BinEwm: data.results[i][objNames[13]],
+                //                 WhEwm: data.results[i][objNames[14]],
+                //                 Message: data.results[i][objNames[15]],
+                //             }
+
+                //             materialFilters.push(data.results[i][objNames[5]]);
+                //             batchFilters.push(data.results[i][objNames[10]]);
+
+                //             if (objValues.ReturnLog) {
+                //                 // sap.m.MessageBox.error(`${objValues.ReturnLog}`);
+                //                 bomTable.setNoDataText(returnLogMsg);
+                //                 jsonModel.setData(boomDataValues);
+                //                 bomTable.setBusy(false);
+                //                 that.clearNotifications();
+                //                 return;
+                //             }
+
+                //             if (!objValues.ReturnLog && !objValues.Message) {
+                //                 // saveBtn.setEnabled(true);
+                //             } else if (!objValues.ReturnLog && objValues.Message && that.getChechStatus()) {
+                //                 saveBtn.setEnabled(false);
+                //             }
+
+                //             boomForSave.push(objValues);
+                //             boomDataValues.push(objValues);
+                //         }
+
+                //         let noStockMsg = boomDataValues.filter(boom => boom.Message);
+
+                //         // noStockMsg.length > 0 ? saveBtn.setEnabled(false) : saveBtn.setEnabled(true);
+                //         jsonModel.setData(boomDataValues);
+                //         bomTable.setBusy(false);
+                //         that.toggleSaveButton();
+                //     },
+                //     error: function (error) {
+                //         MessageToast.show("Error al obtener los materiales del B.O.M");
+                //         bomTable.setBusy(false);
+                //     }
+                // })
+
                 oModel.read("/ZfmGetBomSet", {
                     filters: aFilters,
                     success: function (data) {
@@ -2283,11 +2365,14 @@ sap.ui.define([
                         if (data.results.length === 0) {
                             jsonModel.setData(boomDataValues);
                             saveBtn.setEnabled(false);
-                            sap.m.MessageBox.show(`No hay materiales asociados a la orden ${currentProdOrder}`)
+                            sap.m.MessageBox.show(`No hay materiales asociados a la orden ${currentProdOrder}`);
                             return;
                         }
 
                         let objNames = Object.keys(data.results[0]);
+
+                        // Mapa para agrupar por componente
+                        let componentMap = new Map();
 
                         for (let i = 0; i < data.results.length; i++) {
                             let objValues = {
@@ -2306,13 +2391,12 @@ sap.ui.define([
                                 BinEwm: data.results[i][objNames[13]],
                                 WhEwm: data.results[i][objNames[14]],
                                 Message: data.results[i][objNames[15]],
-                            }
+                            };
 
                             materialFilters.push(data.results[i][objNames[5]]);
                             batchFilters.push(data.results[i][objNames[10]]);
 
                             if (objValues.ReturnLog) {
-                                // sap.m.MessageBox.error(`${objValues.ReturnLog}`);
                                 bomTable.setNoDataText(returnLogMsg);
                                 jsonModel.setData(boomDataValues);
                                 bomTable.setBusy(false);
@@ -2320,27 +2404,69 @@ sap.ui.define([
                                 return;
                             }
 
+                            // Agrupar por componente
+                            let componentKey = objValues.Component;
+
+                            if (componentMap.has(componentKey)) {
+                                // Si ya existe el componente, agregar el Charg a la lista
+                                let existingComponent = componentMap.get(componentKey);
+
+                                // Agregar el nuevo Charg si no existe ya
+                                if (!existingComponent.ChargList.some(c => c.Charg === objValues.Charg)) {
+                                    existingComponent.ChargList.push({
+                                        Charg: objValues.Charg,
+                                        Licha: objValues.Licha,
+                                        BinEwm: objValues.BinEwm,
+                                        WhEwm: objValues.WhEwm,
+                                        Message: objValues.Message
+                                    });
+                                }
+
+                                // Actualizar el Charg seleccionado (por defecto el primero o el que tenga stock)
+                                if (!existingComponent.Message && objValues.Message) {
+                                    // Mantener el que no tiene mensaje de error
+                                } else if (!objValues.Message) {
+                                    existingComponent.Charg = objValues.Charg;
+                                    existingComponent.Licha = objValues.Licha;
+                                    existingComponent.BinEwm = objValues.BinEwm;
+                                    existingComponent.WhEwm = objValues.WhEwm;
+                                    existingComponent.Message = objValues.Message;
+                                }
+                            } else {
+                                // Si es nuevo, crear el objeto con la lista de Charg
+                                objValues.ChargList = [{
+                                    Charg: objValues.Charg,
+                                    Licha: objValues.Licha,
+                                    BinEwm: objValues.BinEwm,
+                                    WhEwm: objValues.WhEwm,
+                                    Message: objValues.Message
+                                }];
+                                objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
+                                componentMap.set(componentKey, objValues);
+                            }
+
+                            // Validar botón de guardado
                             if (!objValues.ReturnLog && !objValues.Message) {
                                 // saveBtn.setEnabled(true);
                             } else if (!objValues.ReturnLog && objValues.Message && that.getChechStatus()) {
                                 saveBtn.setEnabled(false);
                             }
-
-                            boomForSave.push(objValues);
-                            boomDataValues.push(objValues);
                         }
 
+                        // Convertir el Map a array
+                        boomDataValues = Array.from(componentMap.values());
                         let noStockMsg = boomDataValues.filter(boom => boom.Message);
 
-                        // noStockMsg.length > 0 ? saveBtn.setEnabled(false) : saveBtn.setEnabled(true);
+                        boomForSave.push(boomDataValues);
                         jsonModel.setData(boomDataValues);
                         bomTable.setBusy(false);
                         that.toggleSaveButton();
                     },
                     error: function (error) {
-                        console.log(error)
+                        MessageToast.show("Error al obtener los materiales del B.O.M");
+                        bomTable.setBusy(false);
                     }
-                })
+                });
             },
 
             getMaterialSet: function () {
@@ -2396,6 +2522,7 @@ sap.ui.define([
                 });
 
                 let defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
+                let bomSet = boomForSave[0];
 
                 let oParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
@@ -2413,12 +2540,12 @@ sap.ui.define([
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
                     EvAufnr: defectInfoValues.ProductionOrder,
-                    BomItemSet: boomForSave.map((boomItem, index) => {
+                    BomItemSet: bomSet.map((boomItem, index) => {
                         return {
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
                             CompQty: boomItem.CompQty.trim(),
-                            Charg: boomItem.Charg,
+                            Charg: boomItem.SelectedCharg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,
                             Message: boomItem.Message,
@@ -2959,15 +3086,16 @@ sap.ui.define([
             },
 
             checkOperatorNumber: function (opNumber) {
+                const maxOpNumberLength = 30;
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const currentPlant = AppJsonModel.getProperty('/DefectInfo').Plant
                 let aFilter;
 
                 if (currentPlant === 'PT10') {
-                    let combinedFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber), new Filter('subty', FilterOperator.EQ, '0009')]
+                    let combinedFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber.padStart(maxOpNumberLength, '0')), new Filter('subty', FilterOperator.EQ, '0009'), new Filter('tipo', FilterOperator.EQ, 'U')];
                     aFilter = combinedFilter;
                 } else {
-                    aFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber)];
+                    aFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber.padStart(maxOpNumberLength, '0')), new Filter('tipo', FilterOperator.EQ, 'P')];
                 }
 
                 MatchcodesService.callGetService('/CheckPernr', aFilter)
