@@ -2476,25 +2476,137 @@ sap.ui.define([
                 });
             },
 
-            onChargListMultiComboBoxSelectionChange: function(oEvent) {
-                const selectedChargs = oEvent.getSource().getSelectedItems();
-                if(selectedChargs.length === 0) return;
+            // onChargListMultiComboBoxSelectionChange: function(oEvent) {
+            //     const selectedChargs = oEvent.getSource().getSelectedItems();
+            //     if(selectedChargs.length === 0) return;
 
-                const chargQtys = selectedChargs.map(item => {
-                    const currStrVal = item.getAdditionalText();
-                    let intQty = parseFloat(currStrVal.replace(',', '.'));
-                    return intQty;
+            //     const chargQtys = selectedChargs.map(item => {
+            //         const currStrVal = item.getAdditionalText();
+            //         let intQty = parseFloat(currStrVal.replace(',', '.'));
+            //         return intQty;
+            //     });
+
+            //     let chargSum = 0;
+            //     chargQtys.forEach(qty => chargSum += qty);
+
+            //     if(chargSum === 0) return;
+
+            //     MessageToast.show(`Cantidad total seleccionada: ${chargSum.toFixed(3)}`);
+            //     console.log(chargSum.toFixed(3));
+            // },
+
+
+            onChargListMultiComboBoxSelectionChange: function (oEvent) {
+                const oMultiComboBox = oEvent.getSource();
+                const selectedItems = oMultiComboBox.getSelectedItems();
+
+                // Obtener el contexto de la fila para acceder a la cantidad requerida
+                const oBindingContext = oMultiComboBox.getBindingContext("boomData");
+                const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
+
+                // Obtener el modelo y el path de la lista de lotes
+                const oModel = this.getView().getModel("boomData");
+                const sPath = oBindingContext.getPath() + "/ChargList";
+                const aChargList = oModel.getProperty(sPath);
+
+                // Función auxiliar para parsear números con formato (1.000,000 o 1000,000)
+                const parseFormattedNumber = (str) => {
+                    if (typeof str === 'number') return str;
+                    // Remover puntos de miles y reemplazar coma decimal por punto
+                    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+                };
+
+                // Función auxiliar para formatear números (con coma como decimal)
+                const formatNumber = (num) => {
+                    return num.toFixed(3).replace('.', ',');
+                };
+
+                if (selectedItems.length === 0) {
+                    // Si no hay selección, restaurar cantidades originales y habilitar todos
+                    aChargList.forEach(charge => {
+                        if (charge.OriginalClabs !== undefined) {
+                            charge.Clabs = charge.OriginalClabs;
+                        }
+                        charge.Enabled = true;
+                    });
+                    oModel.setProperty(sPath, aChargList);
+                    return;
+                }
+
+                // Guardar las cantidades originales si no existen
+                aChargList.forEach(charge => {
+                    if (charge.OriginalClabs === undefined) {
+                        charge.OriginalClabs = charge.Clabs;
+                    }
+                    if (charge.Enabled === undefined) {
+                        charge.Enabled = true;
+                    }
                 });
 
-                let chargSum = 0;
-                chargQtys.forEach(qty => chargSum += qty);
+                // Obtener las claves seleccionadas
+                const selectedKeys = selectedItems.map(item => item.getKey());
 
-                if(chargSum === 0) return;
+                // Calcular la suma de los items seleccionados
+                let accumulatedSum = 0;
+                selectedKeys.forEach(key => {
+                    const charge = aChargList.find(c => c.Charg === key);
+                    if (charge) {
+                        const originalQty = parseFormattedNumber(charge.OriginalClabs);
+                        accumulatedSum += originalQty;
+                    }
+                });
 
-                MessageToast.show(`Cantidad total seleccionada: ${chargSum.toFixed(3)}`);
-                console.log(chargSum.toFixed(3));
+                // Calcular la cantidad restante para alcanzar el requerido
+                const remainingQuantity = requiredQuantity - accumulatedSum;
+
+                // Actualizar cantidades según la lógica
+                aChargList.forEach(charge => {
+                    const isSelected = selectedKeys.includes(charge.Charg);
+                    const originalQty = parseFormattedNumber(charge.OriginalClabs);
+
+                    if (isSelected) {
+                        // Los items seleccionados mantienen su cantidad original
+                        charge.Clabs = charge.OriginalClabs;
+                        charge.Enabled = true;
+                    } else {
+                        // Los items NO seleccionados
+                        if (remainingQuantity <= 0) {
+                            // Si ya se alcanzó o superó la cantidad requerida, se ponen a 0
+                            charge.Clabs = "0,000";
+                            charge.Enabled = false;
+                        } else {
+                            // Si aún falta cantidad
+                            // Mantener la cantidad original si es menor o igual a lo que falta
+                            if (originalQty <= remainingQuantity) {
+                                charge.Clabs = charge.OriginalClabs;
+                            } else {
+                                // Si la cantidad original es mayor a lo que falta, mostrar lo que falta
+                                charge.Clabs = formatNumber(remainingQuantity);
+                            }
+                            charge.Enabled = true;
+                        }
+                    }
+                });
+
+                // Actualizar el modelo
+                oModel.setProperty(sPath, aChargList);
+
+                // Mostrar toast con la suma actual
+                let totalMessage;
+                if (accumulatedSum >= requiredQuantity) {
+                    // const excess = accumulatedSum - requiredQuantity;
+                    totalMessage = `✓ Cantidad completa: ${formatNumber(accumulatedSum)} / ${formatNumber(requiredQuantity)} `;
+                } else {
+                    totalMessage = `Suma actual: ${formatNumber(accumulatedSum)} / ${formatNumber(requiredQuantity)} (Falta: ${formatNumber(remainingQuantity)})`;
+                }
+
+                MessageToast.show(totalMessage);
+
+                // Guardar las claves seleccionadas en el modelo
+                oModel.setProperty(oBindingContext.getPath() + "/SelectedCharg", selectedKeys);
             },
 
+            // Mostrar mensaje con,
             getMaterialSet: function () {
                 let oModel = this.getOwnerComponent().getModel();
                 let currentProdOrder = this.getView().byId("productionOrder").getValue();
