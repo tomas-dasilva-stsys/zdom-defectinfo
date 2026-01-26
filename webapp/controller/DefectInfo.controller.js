@@ -2391,6 +2391,7 @@ sap.ui.define([
                                 BinEwm: data.results[i][objNames[13]],
                                 WhEwm: data.results[i][objNames[14]],
                                 Message: data.results[i][objNames[15]],
+                                Clabs: data.results[i][objNames[16]],
                             };
 
                             materialFilters.push(data.results[i][objNames[5]]);
@@ -2418,7 +2419,9 @@ sap.ui.define([
                                         Licha: objValues.Licha,
                                         BinEwm: objValues.BinEwm,
                                         WhEwm: objValues.WhEwm,
-                                        Message: objValues.Message
+                                        Message: objValues.Message,
+                                        CompQty: objValues.CompQty,
+                                        Clabs: objValues.Clabs,
                                     });
                                 }
 
@@ -2432,6 +2435,7 @@ sap.ui.define([
                                     existingComponent.WhEwm = objValues.WhEwm;
                                     existingComponent.Message = objValues.Message;
                                     existingComponent.CompQty = objValues.CompQty;
+                                    existingComponent.Clabs = objValues.Clabs;
                                 }
                             } else {
                                 // Si es nuevo, crear el objeto con la lista de Charg
@@ -2440,7 +2444,9 @@ sap.ui.define([
                                     Licha: objValues.Licha,
                                     BinEwm: objValues.BinEwm,
                                     WhEwm: objValues.WhEwm,
-                                    Message: objValues.Message
+                                    Message: objValues.Message,
+                                    CompQty: objValues.CompQty,
+                                    Clabs: objValues.Clabs,
                                 }];
                                 objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
                                 componentMap.set(componentKey, objValues);
@@ -2468,6 +2474,25 @@ sap.ui.define([
                         bomTable.setBusy(false);
                     }
                 });
+            },
+
+            onChargListMultiComboBoxSelectionChange: function(oEvent) {
+                const selectedChargs = oEvent.getSource().getSelectedItems();
+                if(selectedChargs.length === 0) return;
+
+                const chargQtys = selectedChargs.map(item => {
+                    const currStrVal = item.getAdditionalText();
+                    let intQty = parseFloat(currStrVal.replace(',', '.'));
+                    return intQty;
+                });
+
+                let chargSum = 0;
+                chargQtys.forEach(qty => chargSum += qty);
+
+                if(chargSum === 0) return;
+
+                MessageToast.show(`Cantidad total seleccionada: ${chargSum.toFixed(3)}`);
+                console.log(chargSum.toFixed(3));
             },
 
             getMaterialSet: function () {
@@ -2996,7 +3021,7 @@ sap.ui.define([
                     this._quantityDebounceTimer = setTimeout(() => {
                         AppJsonModel.setInnerProperty('/DefectInfo', 'Quantity', currValue);
                         this.getBoomMaterials();
-                    }, 500);
+                    }, 700);
                 }
             },
 

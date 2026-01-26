@@ -453,7 +453,7 @@
                                     class="sapUiTinyMarginTopBottom"
                                 />
                                 <Text text="{boomData>CompQty}" />
-                                <Select
+                                <!-- <Select
                                     selectedKey="{boomData>SelectedCharg}"
                                     visible="{= ${boomData>ChargList}.length > 1 }"
                                     items="{ path: 'boomData>ChargList', templateShareable: false }"
@@ -465,7 +465,26 @@
                                             text="{boomData>Charg}"
                                         />
                                     </items>
-                                </Select>
+                                </Select> -->
+
+                                <MultiComboBox
+                                    visible="{= ${boomData>ChargList}.length > 1 }"
+                                    selectedKeys="{boomData>SelectedCharg}"
+                                    showSecondaryValues="true"
+                                    selectionChange="onChargListMultiComboBoxSelectionChange"
+                                    width="100%"
+                                    items="{
+				                        path: 'boomData>ChargList',
+                                        templateShareable: false,
+				                        sorter: { path: 'Charg' }
+                                        }"
+                                >
+                                    <core:ListItem
+                                        key="{boomData>Charg}"
+                                        text="{boomData>Charg}"
+                                        additionalText="{boomData>Clabs}"
+                                    />
+                                </MultiComboBox>
                                 <!-- <Text text="{boomData>Charg}" visible="{= ${boomData>ChargList}.length == 1 }"/> -->
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
