@@ -453,39 +453,31 @@
                                     class="sapUiTinyMarginTopBottom"
                                 />
                                 <Text text="{boomData>CompQty}" />
-                                <!-- <Select
-                                    selectedKey="{boomData>SelectedCharg}"
-                                    visible="{= ${boomData>ChargList}.length > 1 }"
-                                    items="{ path: 'boomData>ChargList', templateShareable: false }"
-                                    width="100%"
-                                >
-                                    <items>
-                                        <core:Item
-                                            key="{boomData>Charg}"
-                                            text="{boomData>Charg}"
-                                        />
-                                    </items>
-                                </Select> -->
-
-                                <MultiComboBox
-                                    visible="{= ${boomData>ChargList}.length > 1 }"
-                                    selectedKeys="{boomData>SelectedCharg}"
-                                    showSecondaryValues="true"
-                                    selectionChange="onChargListMultiComboBoxSelectionChange"
-                                    width="100%"
-                                    items="{
+                                <FlexBox>
+                                    <MultiComboBox
+                                        visible="{= ${boomData>ChargList}.length > 1 }"
+                                        selectedKeys="{boomData>SelectedCharg}"
+                                        showSecondaryValues="true"
+                                        selectionChange="onChargListMultiComboBoxSelectionChange"
+                                        width="100%"
+                                        items="{
 				                        path: 'boomData>ChargList',
                                         templateShareable: false,
 				                        sorter: { path: 'Charg' }
                                         }"
-                                >
-                                    <core:ListItem
-                                        key="{boomData>Charg}"
-                                        text="{boomData>Charg}"
-                                        additionalText="{boomData>Clabs}"
+                                    >
+                                        <core:ListItem
+                                            key="{boomData>Charg}"
+                                            enabled="{boomData>Enabled}"
+                                            text="{boomData>Charg}"
+                                            additionalText="{boomData>Clabs}"
+                                        />
+                                    </MultiComboBox>
+                                    <Text
+                                        text="{ = ${boomData>Charg} ? ${boomData>Charg} : 'Sin lote'}"
+                                        visible="{= ${boomData>ChargList}.length === 1 }"
                                     />
-                                </MultiComboBox>
-                                <!-- <Text text="{boomData>Charg}" visible="{= ${boomData>ChargList}.length == 1 }"/> -->
+                                </FlexBox>
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
                             </cells>

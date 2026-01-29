@@ -2468,6 +2468,7 @@ sap.ui.define([
                         jsonModel.setData(boomDataValues);
                         bomTable.setBusy(false);
                         that.toggleSaveButton();
+                        that._afterBoomDataLoaded()
                     },
                     error: function (error) {
                         MessageToast.show("Error al obtener los materiales del B.O.M");
@@ -2495,10 +2496,117 @@ sap.ui.define([
             //     console.log(chargSum.toFixed(3));
             // },
 
+            _applyChargListLogic: function (oMultiComboBox, oBindingContext) {
+                const oModel = this.getView().getModel("boomData");
+                const sPath = oBindingContext.getPath() + "/ChargList";
+                const aChargList = oModel.getProperty(sPath);
+                const selectedKeys = oMultiComboBox.getSelectedKeys() || [];
+                const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
+
+                // Función auxiliar para parsear números
+                const parseFormattedNumber = (str) => {
+                    if (typeof str === 'number') return str;
+                    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+                };
+
+                // Función auxiliar para formatear números
+                const formatNumber = (num) => {
+                    return num.toFixed(3).replace('.', ',');
+                };
+
+                // Si no hay lotes seleccionados, no hacer nada
+                if (selectedKeys.length === 0) return;
+
+                // Guardar las cantidades originales si no existen
+                aChargList.forEach(charge => {
+                    if (charge.OriginalClabs === undefined) {
+                        charge.OriginalClabs = charge.Clabs;
+                    }
+                    if (charge.Enabled === undefined) {
+                        charge.Enabled = true;
+                    }
+                });
+
+                // Calcular la suma de los items seleccionados
+                let accumulatedSum = 0;
+                selectedKeys.forEach(key => {
+                    const charge = aChargList.find(c => c.Charg === key);
+                    if (charge) {
+                        const currentQty = parseFormattedNumber(charge.Clabs);
+                        accumulatedSum += currentQty;
+                    }
+                });
+
+                // Calcular la cantidad restante
+                const remainingQuantity = requiredQuantity - accumulatedSum;
+
+                // Actualizar cantidades según la lógica
+                aChargList.forEach(charge => {
+                    const isSelected = selectedKeys.includes(charge.Charg);
+                    const originalQty = parseFormattedNumber(charge.OriginalClabs);
+
+                    if (isSelected) {
+                        charge.Enabled = true;
+                    } else {
+                        if (remainingQuantity <= 0) {
+                            charge.Clabs = "0,000";
+                            charge.Enabled = false;
+                        } else {
+                            if (originalQty <= remainingQuantity) {
+                                charge.Clabs = charge.OriginalClabs;
+                            } else {
+                                charge.Clabs = formatNumber(remainingQuantity);
+                            }
+                            charge.Enabled = true;
+                        }
+                    }
+                });
+
+                // Actualizar el modelo
+                oModel.setProperty(sPath, aChargList);
+            },
+
+            _afterBoomDataLoaded: function () {
+                const oTable = this.byId("bomTable");
+                const aItems = oTable.getItems();
+
+                // aItems.forEach(oItem => {
+                //     const oMultiComboBox = oItem.getCells().find(cell =>
+                //         cell.getMetadata().getName() === "sap.m.MultiComboBox"
+                //     );
+
+                //     if (oMultiComboBox) {
+                //         const oBindingContext = oMultiComboBox.getBindingContext("boomData");
+                //         if (oBindingContext) {
+                //             this._applyChargListLogic(oMultiComboBox, oBindingContext);
+                //         }
+                //     }
+                // });
+
+                aItems.forEach(oItem => {
+                    const aCells = oItem.getCells();
+                    aCells.forEach(oCell => {
+                        // Buscar el FlexBox que contiene el MultiComboBox
+                        if (oCell.getMetadata().getName() === "sap.m.FlexBox") {
+                            const aFlexBoxItems = oCell.getItems();
+                            aFlexBoxItems.forEach(oFlexItem => {
+                                if (oFlexItem.getMetadata().getName() === "sap.m.MultiComboBox") {
+                                    const oBindingContext = oFlexItem.getBindingContext("boomData");
+                                    if (oBindingContext) {
+                                        // Aplicar la lógica automáticamente si hay lotes preseleccionados
+                                        this._applyChargListLogic(oFlexItem, oBindingContext);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                });
+            },
 
             onChargListMultiComboBoxSelectionChange: function (oEvent) {
                 const oMultiComboBox = oEvent.getSource();
                 const selectedItems = oMultiComboBox.getSelectedItems();
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
 
                 // Obtener el contexto de la fila para acceder a la cantidad requerida
                 const oBindingContext = oMultiComboBox.getBindingContext("boomData");
@@ -2546,13 +2654,14 @@ sap.ui.define([
                 // Obtener las claves seleccionadas
                 const selectedKeys = selectedItems.map(item => item.getKey());
 
-                // Calcular la suma de los items seleccionados
+                // Calcular la suma de los items seleccionados usando la cantidad ACTUAL (Clabs), no la original
                 let accumulatedSum = 0;
                 selectedKeys.forEach(key => {
                     const charge = aChargList.find(c => c.Charg === key);
                     if (charge) {
-                        const originalQty = parseFormattedNumber(charge.OriginalClabs);
-                        accumulatedSum += originalQty;
+                        // CAMBIO IMPORTANTE: Usar Clabs (cantidad actual) en lugar de OriginalClabs
+                        const currentQty = parseFormattedNumber(charge.Clabs);
+                        accumulatedSum += currentQty;
                     }
                 });
 
@@ -2565,8 +2674,8 @@ sap.ui.define([
                     const originalQty = parseFormattedNumber(charge.OriginalClabs);
 
                     if (isSelected) {
-                        // Los items seleccionados mantienen su cantidad original
-                        charge.Clabs = charge.OriginalClabs;
+                        // Los items seleccionados mantienen su cantidad ACTUAL (ya ajustada)
+                        // No restaurar a OriginalClabs, mantener lo que ya tiene
                         charge.Enabled = true;
                     } else {
                         // Los items NO seleccionados
@@ -2594,10 +2703,9 @@ sap.ui.define([
                 // Mostrar toast con la suma actual
                 let totalMessage;
                 if (accumulatedSum >= requiredQuantity) {
-                    // const excess = accumulatedSum - requiredQuantity;
-                    totalMessage = `✓ Cantidad completa: ${formatNumber(accumulatedSum)} / ${formatNumber(requiredQuantity)} `;
+                    totalMessage = oResourceBundle.getText("quantityCompleted", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
                 } else {
-                    totalMessage = `Suma actual: ${formatNumber(accumulatedSum)} / ${formatNumber(requiredQuantity)} (Falta: ${formatNumber(remainingQuantity)})`;
+                    totalMessage = oResourceBundle.getText("actualQuantity", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
                 }
 
                 MessageToast.show(totalMessage);
@@ -2683,7 +2791,7 @@ sap.ui.define([
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
                             CompQty: boomItem.CompQty.trim(),
-                            Charg: boomItem.SelectedCharg,
+                            Charg: boomItem.Charg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,
                             Message: boomItem.Message,
