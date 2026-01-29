@@ -2704,8 +2704,10 @@ sap.ui.define([
                 let totalMessage;
                 if (accumulatedSum >= requiredQuantity) {
                     totalMessage = oResourceBundle.getText("quantityCompleted", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
+                    this.toggleSaveButton()
                 } else {
-                    totalMessage = oResourceBundle.getText("actualQuantity", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
+                    totalMessage = oResourceBundle.getText("actualQuantity", [formatNumber(accumulatedSum), formatNumber(remainingQuantity)]);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                 }
 
                 MessageToast.show(totalMessage);
@@ -2756,7 +2758,15 @@ sap.ui.define([
             // BAPI CALL
 
             onPressSave: function (oEvent) {
-                let that = this;
+                const that = this;
+                const chargQuantityCorrect = this.checkChargsQuantity();
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+
+                if (!chargQuantityCorrect) {
+                    sap.m.MessageBox.error(oResourceBundle.getText("insufficientBatchQty"));
+                    return;
+                }
+
                 let currBtnId = oEvent.getSource().getId().split('-').pop();
                 let oModel = this.getOwnerComponent().getModel();
                 let emptyFields = this.checkValueState();
@@ -2874,6 +2884,24 @@ sap.ui.define([
 
                     })
                 }
+            },
+
+            checkChargsQuantity: function () {
+                const oModel = this.getView().getModel("boomData");
+                const multiBoxData = oModel.getData().map(item => item.ChargList).filter(list => list.length > 1);
+                const selectedChargs = multiBoxData[0].filter(charg => charg.Enabled)
+                const compQty = parseInt(selectedChargs[0].CompQty)
+
+                let totalQty = 0;
+                selectedChargs.forEach(charg => {
+                    totalQty += parseFloat(charg.Clabs);
+                });
+
+                if (totalQty !== compQty) {
+                    return false;
+                }
+
+                return true;
             },
 
             checkEquipment: function () {
@@ -3284,33 +3312,6 @@ sap.ui.define([
                         emptyInputs++;
                     }
                 }
-                //Grisa "Save" cuando se ingresa Rapid error
-                // let sProductionOrder = AppJsonModel.getProperty('/DefectInfo/ProductionOrder');
-                // //let sPatch = "/ZfmGetBomSet('" + sProductionOrder + "')";
-                // let obomTable = this.byId("bomTable").getModel();
-
-                // if (obomTable) {
-                //     let oItems = this.byId("bomTable").getBinding("items");
-                //     let sCant = oItems.getLength();
-                //     let sError = false;
-                //     if (sCant > 0) {
-
-                //         for (let i = 0; i < oItems.getLength(); i++) {
-                //             let sIndex = "/" + i;
-                //             if (oItems.getModel().getProperty(sIndex).Message.length > 0) {
-                //                 let sError = true;
-                //             }
-                //         }
-
-                //         if (sError == true) {
-                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                //             return;
-                //         } else {
-                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
-                //             return;
-                //         }
-                //     }
-                // }
 
                 if (boomMessages.length > 0) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
