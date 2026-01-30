@@ -2415,13 +2415,26 @@ sap.ui.define([
                                 // Agregar el nuevo Charg si no existe ya
                                 if (!existingComponent.ChargList.some(c => c.Charg === objValues.Charg)) {
                                     existingComponent.ChargList.push({
-                                        Charg: objValues.Charg,
-                                        Licha: objValues.Licha,
-                                        BinEwm: objValues.BinEwm,
-                                        WhEwm: objValues.WhEwm,
-                                        Message: objValues.Message,
+                                        // Charg: objValues.Charg,
+                                        // Licha: objValues.Licha,
+                                        // BinEwm: objValues.BinEwm,
+                                        // WhEwm: objValues.WhEwm,
+                                        // Message: objValues.Message,
+                                        // CompQty: objValues.CompQty,
+                                        // Clabs: objValues.Clabs,
+                                        ItemNo: objValues.ItemNo,
+                                        Component: objValues.Component,
                                         CompQty: objValues.CompQty,
                                         Clabs: objValues.Clabs,
+                                        Charg: objValues.Charg,
+                                        Licha: objValues.Licha,
+                                        IssueLoc: objValues.IssueLoc,
+                                        Message: objValues.Message,
+                                        ChangeNo: objValues.ProdOrderOpPlan,
+                                        CompUnit: objValues.CompUnit,
+                                        BinEwm: objValues.BinEwm,
+                                        WhEwm: objValues.WhEwm,
+
                                     });
                                 }
 
@@ -2429,24 +2442,36 @@ sap.ui.define([
                                 if (!existingComponent.Message && objValues.Message) {
                                     // Mantener el que no tiene mensaje de error
                                 } else if (!objValues.Message) {
-                                    existingComponent.Charg = objValues.Charg;
-                                    existingComponent.Licha = objValues.Licha;
-                                    existingComponent.BinEwm = objValues.BinEwm;
-                                    existingComponent.WhEwm = objValues.WhEwm;
-                                    existingComponent.Message = objValues.Message;
-                                    existingComponent.CompQty = objValues.CompQty;
-                                    existingComponent.Clabs = objValues.Clabs;
+                                    {
+                                        existingComponent.ItemNo = objValues.ItemNo;
+                                        existingComponent.Component = objValues.Component;
+                                        existingComponent.CompQty = objValues.CompQty;
+                                        existingComponent.Clabs = objValues.Clabs;
+                                        existingComponent.Charg = objValues.Charg;
+                                        existingComponent.Licha = objValues.Licha;
+                                        existingComponent.IssueLoc = objValues.IssueLoc;
+                                        existingComponent.Message = objValues.Message;
+                                        existingComponent.ChangeNo = objValues.ProdOrderOpPlan;
+                                        existingComponent.CompUnit = objValues.CompUnit;
+                                        existingComponent.BinEwm = objValues.BinEwm;
+                                        existingComponent.WhEwm = objValues.WhEwm;
+                                    }
                                 }
                             } else {
                                 // Si es nuevo, crear el objeto con la lista de Charg
                                 objValues.ChargList = [{
-                                    Charg: objValues.Charg,
-                                    Licha: objValues.Licha,
-                                    BinEwm: objValues.BinEwm,
-                                    WhEwm: objValues.WhEwm,
-                                    Message: objValues.Message,
+                                    ItemNo: objValues.ItemNo,
+                                    Component: objValues.Component,
                                     CompQty: objValues.CompQty,
                                     Clabs: objValues.Clabs,
+                                    Charg: objValues.Charg,
+                                    Licha: objValues.Licha,
+                                    IssueLoc: objValues.IssueLoc,
+                                    Message: objValues.Message,
+                                    ChangeNo: objValues.ProdOrderOpPlan,
+                                    CompUnit: objValues.CompUnit,
+                                    BinEwm: objValues.BinEwm,
+                                    WhEwm: objValues.WhEwm,
                                 }];
                                 objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
                                 componentMap.set(componentKey, objValues);
@@ -2496,26 +2521,94 @@ sap.ui.define([
             //     console.log(chargSum.toFixed(3));
             // },
 
+            // _applyChargListLogic: function (oMultiComboBox, oBindingContext) {
+            //     const oModel = this.getView().getModel("boomData");
+            //     const sPath = oBindingContext.getPath() + "/ChargList";
+            //     const aChargList = oModel.getProperty(sPath);
+            //     const selectedKeys = oMultiComboBox.getSelectedKeys() || [];
+            //     const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
+
+            //     // Función auxiliar para parsear números
+            //     const parseFormattedNumber = (str) => {
+            //         if (typeof str === 'number') return str;
+            //         return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+            //     };
+
+            //     // Función auxiliar para formatear números
+            //     const formatNumber = (num) => {
+            //         return num.toFixed(3).replace('.', ',');
+            //     };
+
+            //     // Si no hay lotes seleccionados, no hacer nada
+            //     if (selectedKeys.length === 0) return;
+
+            //     // Guardar las cantidades originales si no existen
+            //     aChargList.forEach(charge => {
+            //         if (charge.OriginalClabs === undefined) {
+            //             charge.OriginalClabs = charge.Clabs;
+            //         }
+            //         if (charge.Enabled === undefined) {
+            //             charge.Enabled = true;
+            //         }
+            //     });
+
+            //     // Calcular la suma de los items seleccionados
+            //     let accumulatedSum = 0;
+            //     selectedKeys.forEach(key => {
+            //         const charge = aChargList.find(c => c.Charg === key);
+            //         if (charge) {
+            //             const currentQty = parseFormattedNumber(charge.Clabs);
+            //             accumulatedSum += currentQty;
+            //         }
+            //     });
+
+            //     // Calcular la cantidad restante
+            //     const remainingQuantity = requiredQuantity - accumulatedSum;
+
+            //     // Actualizar cantidades según la lógica
+            //     aChargList.forEach(charge => {
+            //         const isSelected = selectedKeys.includes(charge.Charg);
+            //         const originalQty = parseFormattedNumber(charge.OriginalClabs);
+
+            //         if (isSelected) {
+            //             charge.Enabled = true;
+            //         } else {
+            //             if (remainingQuantity <= 0) {
+            //                 charge.Clabs = "0,000";
+            //                 charge.Enabled = false;
+            //             } else {
+            //                 if (originalQty <= remainingQuantity) {
+            //                     charge.Clabs = charge.OriginalClabs;
+            //                 } else {
+            //                     charge.Clabs = formatNumber(remainingQuantity);
+            //                 }
+            //                 charge.Enabled = true;
+            //             }
+            //         }
+            //     });
+
+            //     // Actualizar el modelo
+            //     oModel.setProperty(sPath, aChargList);
+            // },
+
             _applyChargListLogic: function (oMultiComboBox, oBindingContext) {
                 const oModel = this.getView().getModel("boomData");
                 const sPath = oBindingContext.getPath() + "/ChargList";
                 const aChargList = oModel.getProperty(sPath);
                 const selectedKeys = oMultiComboBox.getSelectedKeys() || [];
-                const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
-
                 // Función auxiliar para parsear números
                 const parseFormattedNumber = (str) => {
                     if (typeof str === 'number') return str;
                     return parseFloat(str.replace(/\./g, '').replace(',', '.'));
                 };
 
+                const requiredQuantity = parseFormattedNumber(oBindingContext.getProperty("CompQty"));
+
+
                 // Función auxiliar para formatear números
                 const formatNumber = (num) => {
                     return num.toFixed(3).replace('.', ',');
                 };
-
-                // Si no hay lotes seleccionados, no hacer nada
-                if (selectedKeys.length === 0) return;
 
                 // Guardar las cantidades originales si no existen
                 aChargList.forEach(charge => {
@@ -2527,39 +2620,53 @@ sap.ui.define([
                     }
                 });
 
-                // Calcular la suma de los items seleccionados
-                let accumulatedSum = 0;
-                selectedKeys.forEach(key => {
-                    const charge = aChargList.find(c => c.Charg === key);
-                    if (charge) {
-                        const currentQty = parseFormattedNumber(charge.Clabs);
-                        accumulatedSum += currentQty;
-                    }
-                });
-
-                // Calcular la cantidad restante
-                const remainingQuantity = requiredQuantity - accumulatedSum;
-
-                // Actualizar cantidades según la lógica
-                aChargList.forEach(charge => {
-                    const isSelected = selectedKeys.includes(charge.Charg);
+                // PASO 1: Ajustar las cantidades de todos los lotes según lo que va faltando
+                let tempSum = 0;
+                for (let i = 0; i < aChargList.length; i++) {
+                    const charge = aChargList[i];
                     const originalQty = parseFormattedNumber(charge.OriginalClabs);
+                    const remaining = requiredQuantity - tempSum;
 
-                    if (isSelected) {
-                        charge.Enabled = true;
-                    } else {
-                        if (remainingQuantity <= 0) {
-                            charge.Clabs = "0,000";
-                            charge.Enabled = false;
+                    if (remaining > 0) {
+                        if (originalQty >= remaining) {
+                            // Este lote tiene suficiente, ajustar a lo que falta
+                            charge.Clabs = formatNumber(remaining);
                         } else {
-                            if (originalQty <= remainingQuantity) {
-                                charge.Clabs = charge.OriginalClabs;
-                            } else {
-                                charge.Clabs = formatNumber(remainingQuantity);
-                            }
-                            charge.Enabled = true;
+                            // Este lote no es suficiente, mantener cantidad original
+                            charge.Clabs = charge.OriginalClabs;
+                        }
+                        tempSum += parseFormattedNumber(charge.Clabs);
+                    } else {
+                        // Ya no se necesita más cantidad
+                        charge.Clabs = "0,000";
+                    }
+                }
+
+                // PASO 2: Seleccionar automáticamente los lotes necesarios
+                let accumulatedSum = 0;
+                let newSelectedKeys = [];
+
+                for (let i = 0; i < aChargList.length; i++) {
+                    const charge = aChargList[i];
+                    const currentQty = parseFormattedNumber(charge.Clabs);
+
+                    if (currentQty > 0 && accumulatedSum < requiredQuantity) {
+                        newSelectedKeys.push(charge.Charg);
+                        accumulatedSum += currentQty;
+
+                        if (accumulatedSum >= requiredQuantity) {
+                            break;
                         }
                     }
+                }
+
+                // Actualizar las keys seleccionadas en el MultiComboBox
+                oMultiComboBox.setSelectedKeys(newSelectedKeys);
+
+                // PASO 3: Actualizar estado de enabled según selección
+                aChargList.forEach(charge => {
+                    const isSelected = newSelectedKeys.includes(charge.Charg);
+                    charge.Enabled = isSelected;
                 });
 
                 // Actualizar el modelo
@@ -2608,21 +2715,22 @@ sap.ui.define([
                 const selectedItems = oMultiComboBox.getSelectedItems();
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
 
-                // Obtener el contexto de la fila para acceder a la cantidad requerida
-                const oBindingContext = oMultiComboBox.getBindingContext("boomData");
-                const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
-
-                // Obtener el modelo y el path de la lista de lotes
-                const oModel = this.getView().getModel("boomData");
-                const sPath = oBindingContext.getPath() + "/ChargList";
-                const aChargList = oModel.getProperty(sPath);
-
                 // Función auxiliar para parsear números con formato (1.000,000 o 1000,000)
                 const parseFormattedNumber = (str) => {
                     if (typeof str === 'number') return str;
                     // Remover puntos de miles y reemplazar coma decimal por punto
                     return parseFloat(str.replace(/\./g, '').replace(',', '.'));
                 };
+
+                // Obtener el contexto de la fila para acceder a la cantidad requerida
+                const oBindingContext = oMultiComboBox.getBindingContext("boomData");
+                const requiredQuantity = parseFormattedNumber(oBindingContext.getProperty("CompQty"));
+
+                // Obtener el modelo y el path de la lista de lotes
+                const oModel = this.getView().getModel("boomData");
+                const sPath = oBindingContext.getPath() + "/ChargList";
+                const aChargList = oModel.getProperty(sPath);
+
 
                 // Función auxiliar para formatear números (con coma como decimal)
                 const formatNumber = (num) => {
@@ -2779,6 +2887,8 @@ sap.ui.define([
 
                 let defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
                 let bomSet = boomForSave[0];
+                let bomItemsSet = bomSet.flatMap(item => item.ChargList)
+                    .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
 
                 let oParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
@@ -2796,11 +2906,11 @@ sap.ui.define([
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
                     EvAufnr: defectInfoValues.ProductionOrder,
-                    BomItemSet: bomSet.map((boomItem, index) => {
+                    BomItemSet: bomItemsSet.map((boomItem, index) => {
                         return {
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
-                            CompQty: boomItem.CompQty.trim(),
+                            CompQty: boomItem.Clabs ? boomItem.Clabs : boomItem.CompQty,
                             Charg: boomItem.Charg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,
@@ -3297,7 +3407,13 @@ sap.ui.define([
             },
 
             toggleSaveButton: function () {
-                let boomMessages = boomForSave.filter(item => item.Message);
+                let boomMessages = boomForSave.flatMap(item => item).filter(item => item.Message)
+
+                if(boomMessages.length > 0) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    return;
+                }
+
                 let stockChecked = this.getChechStatus();
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 let defectInfoKeys = Object.keys(defectInfo);

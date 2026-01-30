@@ -8,8 +8,13 @@ sap.ui.define([], function () {
             return oDate;
         },
 
-        isChargVisible: function (chargList, charg) {
-            return chargList && chargList.length >= 1 && charg !== ' ';
-        },
+        formatChargListVisibility: function (aChargList) {
+            if (!aChargList || !Array.isArray(aChargList)) {
+                return false;
+            }
+            return aChargList.some(function (item) {
+                return item.Charg && item.Charg !== '';
+            });
+        }
     }
 });

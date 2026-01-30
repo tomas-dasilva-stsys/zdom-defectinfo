@@ -474,7 +474,7 @@
                                         />
                                     </MultiComboBox>
                                     <Text
-                                        text="{ = ${boomData>Charg} ? ${boomData>Charg} : 'Sin lote'}"
+                                        text="{boomData>Charg}"
                                         visible="{= ${boomData>ChargList}.length === 1 }"
                                     />
                                 </FlexBox>
