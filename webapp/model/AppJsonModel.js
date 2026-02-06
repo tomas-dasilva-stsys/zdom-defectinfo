@@ -284,6 +284,8 @@ sap.ui.define([
                     "WorkCenter": true,
                     "Equipment": false,
                     "SaveBtn": false,
+                    "SaveAndPrintBtn": false,
+                    "ReprintBtn": false,
                     "Select": true,
                     "guardar": ""
                 },

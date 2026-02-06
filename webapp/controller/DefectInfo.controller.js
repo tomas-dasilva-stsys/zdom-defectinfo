@@ -2868,7 +2868,6 @@ sap.ui.define([
             },
 
             // BAPI CALL
-
             onPressSave: function (oEvent) {
                 const that = this;
                 // const chargQuantityCorrect = this.checkChargsQuantity();
@@ -3000,6 +2999,61 @@ sap.ui.define([
 
                     })
                 }
+            },
+
+            onPressSaveAndPrint: function () {
+                const emptyFields = this.checkValueState();
+                if (emptyFields) return;
+
+                const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
+                const bomSet = boomForSave[0];
+                let bomItemsSet = bomSet.flatMap(item => item.ChargList)
+                    .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
+
+                const oParameters = {
+                    IvAufnr: defectInfoValues.ProductionOrder,
+                    IvIsStockMovement: this.getChechStatus(),
+                    IvSerialno: defectInfoValues.SerialNumber,
+                    IvSortf: defectInfoValues.ProductOrderOperation,
+                    IvWerks: defectInfoValues.Plant,
+                    IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
+                    IvRepCode: defectInfoValues.RepairCode,
+                    IvDlCode: defectInfoValues.ElementCode,
+                    IvDCode: defectInfoValues.DefectCode,
+                    IvCauseCodegruppe: defectInfoValues.CauseCodeGruppe,
+                    IvCauseCode: defectInfoValues.CauseCode,
+                    IvEqnr: defectInfoValues.Equipment,
+                    IvEmplCode: defectInfoValues.OperatorNumber,
+                    EvAufnr: defectInfoValues.ProductionOrder,
+
+                    BomItemSet: bomItemsSet.map((boomItem, index) => {
+                        return {
+                            ItemNo: boomItem.ItemNo,
+                            Component: boomItem.Component,
+                            CompQty: boomItem.Clabs ? boomItem.Clabs : boomItem.CompQty,
+                            Charg: boomItem.Charg,
+                            Licha: boomItem.Licha,
+                            IssueLoc: boomItem.IssueLoc,
+                            Message: boomItem.Message,
+                            ChangeNo: boomItem.ProdOrderOpPlan,
+                            CompUnit: boomItem.CompUnit,
+                            BinEwm: boomItem.BinEwm,
+                            WhEwm: boomItem.WhEwm,
+                        }
+                    }),
+                    ReturnSet: []
+                }
+
+                console.log(oParameters);
+
+            },
+
+            onPressReprint: function () {
+                const emptyFields = this.checkValueState();
+                if (emptyFields) return;
+
+                const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
             },
 
             checkChargsQuantity: function () {
@@ -3380,7 +3434,6 @@ sap.ui.define([
                 }
             },
 
-
             setMessageType: function (oMessage) {
                 switch (oMessage) {
                     case 'S':
@@ -3405,12 +3458,6 @@ sap.ui.define([
 
             toggleSaveButton: function () {
                 let boomMessages = boomForSave.flatMap(item => item).filter(item => item.Message)
-
-                if(boomMessages.length > 0) {
-                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                    return;
-                }
-
                 let stockChecked = this.getChechStatus();
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 let defectInfoKeys = Object.keys(defectInfo);
@@ -3426,6 +3473,17 @@ sap.ui.define([
                     }
                 }
 
+                if (boomMessages.length > 0 && !emptyInputs) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', true)
+                    return;
+                }
+
+                if (!emptyInputs) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', true)
+                }
+
                 if (boomMessages.length > 0) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     return;
@@ -3433,16 +3491,21 @@ sap.ui.define([
 
                 if (equipmentStateError === 'Error' || opNumberStateError === 'Error') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', false);
                     return;
                 }
 
                 if ((!emptyInputs && boomForSave.length === 0) || emptyInputs || quantityInputValue === '0') {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', false);
                     return;
                 }
 
                 if ((!emptyInputs && boomMessages.length === 0) || (!emptyInputs && boomMessages.length > 0 && equipmentStateError !== 'Error')) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', true);
                     return;
                 }
 
