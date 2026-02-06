@@ -2867,13 +2867,13 @@ sap.ui.define([
 
             onPressSave: function (oEvent) {
                 const that = this;
-                const chargQuantityCorrect = this.checkChargsQuantity();
+                // const chargQuantityCorrect = this.checkChargsQuantity();
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
 
-                if (!chargQuantityCorrect) {
-                    sap.m.MessageBox.error(oResourceBundle.getText("insufficientBatchQty"));
-                    return;
-                }
+                // if (!chargQuantityCorrect) {
+                //     sap.m.MessageBox.error(oResourceBundle.getText("insufficientBatchQty"));
+                //     return;
+                // }
 
                 let currBtnId = oEvent.getSource().getId().split('-').pop();
                 let oModel = this.getOwnerComponent().getModel();
