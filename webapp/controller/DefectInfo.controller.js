@@ -2435,6 +2435,7 @@ sap.ui.define([
                                         BinEwm: objValues.BinEwm,
                                         WhEwm: objValues.WhEwm,
 
+
                                     });
                                 }
 
@@ -2456,6 +2457,7 @@ sap.ui.define([
                                         existingComponent.BinEwm = objValues.BinEwm;
                                         existingComponent.WhEwm = objValues.WhEwm;
                                     }
+
                                 }
                             } else {
                                 // Si es nuevo, crear el objeto con la lista de Charg
@@ -2472,6 +2474,7 @@ sap.ui.define([
                                     CompUnit: objValues.CompUnit,
                                     BinEwm: objValues.BinEwm,
                                     WhEwm: objValues.WhEwm,
+
                                 }];
                                 objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
                                 componentMap.set(componentKey, objValues);
@@ -2708,6 +2711,7 @@ sap.ui.define([
                         }
                     });
                 });
+
             },
 
             onChargListMultiComboBoxSelectionChange: function (oEvent) {
@@ -2890,6 +2894,7 @@ sap.ui.define([
                 let bomItemsSet = bomSet.flatMap(item => item.ChargList)
                     .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
 
+
                 let oParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
                     IvIsStockMovement: this.getChechStatus(),
@@ -2906,6 +2911,7 @@ sap.ui.define([
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
                     EvAufnr: defectInfoValues.ProductionOrder,
+
                     BomItemSet: bomItemsSet.map((boomItem, index) => {
                         return {
                             ItemNo: boomItem.ItemNo,
@@ -3252,17 +3258,14 @@ sap.ui.define([
                     console.log(error);
                 }
             },
-
             onInputChange: function (oEvent) {
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const noDataText = oResourceBundle.getText("noData");
-
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 let bomModel = this.getOwnerComponent().getModel('boomData');
                 let bomTable = this.byId("bomTable");
                 let currValue = oEvent.getParameters().value;
                 let currId = oEvent.getParameter("id").split('--').pop();
-
                 if (currId === 'ProductOrderOperation' && !currValue) {
                     this.byId(currId).setValueState("None");
                     bomModel.setData({});
@@ -3270,7 +3273,6 @@ sap.ui.define([
                     this.clearNotifications();
                     return;
                 }
-
                 if (currId === 'ProductionOrder' && !currValue) {
                     this.byId(currId).setValueState("None");
                     AppJsonModel.setInnerProperty('/DefectInfo', 'Material', '');
@@ -3284,21 +3286,17 @@ sap.ui.define([
                     this.clearNotifications();
                     return;
                 }
-
                 if (currId === 'SerialNumber' && !currValue) {
                     this.byId(currId).setValueState('None');
                     return;
                 }
-
                 if (currId === 'WorkCenter') {
                     this.byId(currId).setValue(oEvent.getParameter("value").toUpperCase());
                     this.byId(currId).setValueState("None");
-
                     // FUNCTION TO AUTOCOMPLETE EQUIPMENT
                     this.checkEquipment();
                     return;
                 }
-
                 if (currId === 'OperatorNumber') {
                     if (!currValue.trim()) {
                         this.byId(currId).setValueState("None");
@@ -3309,7 +3307,6 @@ sap.ui.define([
                     this.checkOperatorNumber(currValue);
                     return;
                 }
-
                 if (currValue) {
                     this.byId(currId).setValueState("None");
                 }
