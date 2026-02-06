@@ -453,7 +453,31 @@
                                     class="sapUiTinyMarginTopBottom"
                                 />
                                 <Text text="{boomData>CompQty}" />
-                                <Text text="{boomData>Charg}" />
+                                <FlexBox>
+                                    <MultiComboBox
+                                        visible="{= ${boomData>ChargList}.length > 1 }"
+                                        selectedKeys="{boomData>SelectedCharg}"
+                                        showSecondaryValues="true"
+                                        selectionChange="onChargListMultiComboBoxSelectionChange"
+                                        width="100%"
+                                        items="{
+				                        path: 'boomData>ChargList',
+                                        templateShareable: false,
+				                        sorter: { path: 'Charg' }
+                                        }"
+                                    >
+                                        <core:ListItem
+                                            key="{boomData>Charg}"
+                                            enabled="{boomData>Enabled}"
+                                            text="{boomData>Charg}"
+                                            additionalText="{boomData>Clabs}"
+                                        />
+                                    </MultiComboBox>
+                                    <Text
+                                        text="{boomData>Charg}"
+                                        visible="{= ${boomData>ChargList}.length === 1 }"
+                                    />
+                                </FlexBox>
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
                             </cells>

@@ -2415,13 +2415,27 @@ sap.ui.define([
                                 // Agregar el nuevo Charg si no existe ya
                                 if (!existingComponent.ChargList.some(c => c.Charg === objValues.Charg)) {
                                     existingComponent.ChargList.push({
-                                        Charg: objValues.Charg,
-                                        Licha: objValues.Licha,
-                                        BinEwm: objValues.BinEwm,
-                                        WhEwm: objValues.WhEwm,
-                                        Message: objValues.Message,
+                                        // Charg: objValues.Charg,
+                                        // Licha: objValues.Licha,
+                                        // BinEwm: objValues.BinEwm,
+                                        // WhEwm: objValues.WhEwm,
+                                        // Message: objValues.Message,
+                                        // CompQty: objValues.CompQty,
+                                        // Clabs: objValues.Clabs,
+                                        ItemNo: objValues.ItemNo,
+                                        Component: objValues.Component,
                                         CompQty: objValues.CompQty,
                                         Clabs: objValues.Clabs,
+                                        Charg: objValues.Charg,
+                                        Licha: objValues.Licha,
+                                        IssueLoc: objValues.IssueLoc,
+                                        Message: objValues.Message,
+                                        ChangeNo: objValues.ProdOrderOpPlan,
+                                        CompUnit: objValues.CompUnit,
+                                        BinEwm: objValues.BinEwm,
+                                        WhEwm: objValues.WhEwm,
+
+
                                     });
                                 }
 
@@ -2429,24 +2443,38 @@ sap.ui.define([
                                 if (!existingComponent.Message && objValues.Message) {
                                     // Mantener el que no tiene mensaje de error
                                 } else if (!objValues.Message) {
-                                    existingComponent.Charg = objValues.Charg;
-                                    existingComponent.Licha = objValues.Licha;
-                                    existingComponent.BinEwm = objValues.BinEwm;
-                                    existingComponent.WhEwm = objValues.WhEwm;
-                                    existingComponent.Message = objValues.Message;
-                                    existingComponent.CompQty = objValues.CompQty;
-                                    existingComponent.Clabs = objValues.Clabs;
+                                    {
+                                        existingComponent.ItemNo = objValues.ItemNo;
+                                        existingComponent.Component = objValues.Component;
+                                        existingComponent.CompQty = objValues.CompQty;
+                                        existingComponent.Clabs = objValues.Clabs;
+                                        existingComponent.Charg = objValues.Charg;
+                                        existingComponent.Licha = objValues.Licha;
+                                        existingComponent.IssueLoc = objValues.IssueLoc;
+                                        existingComponent.Message = objValues.Message;
+                                        existingComponent.ChangeNo = objValues.ProdOrderOpPlan;
+                                        existingComponent.CompUnit = objValues.CompUnit;
+                                        existingComponent.BinEwm = objValues.BinEwm;
+                                        existingComponent.WhEwm = objValues.WhEwm;
+                                    }
+
                                 }
                             } else {
                                 // Si es nuevo, crear el objeto con la lista de Charg
                                 objValues.ChargList = [{
-                                    Charg: objValues.Charg,
-                                    Licha: objValues.Licha,
-                                    BinEwm: objValues.BinEwm,
-                                    WhEwm: objValues.WhEwm,
-                                    Message: objValues.Message,
+                                    ItemNo: objValues.ItemNo,
+                                    Component: objValues.Component,
                                     CompQty: objValues.CompQty,
                                     Clabs: objValues.Clabs,
+                                    Charg: objValues.Charg,
+                                    Licha: objValues.Licha,
+                                    IssueLoc: objValues.IssueLoc,
+                                    Message: objValues.Message,
+                                    ChangeNo: objValues.ProdOrderOpPlan,
+                                    CompUnit: objValues.CompUnit,
+                                    BinEwm: objValues.BinEwm,
+                                    WhEwm: objValues.WhEwm,
+
                                 }];
                                 objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
                                 componentMap.set(componentKey, objValues);
@@ -2468,6 +2496,7 @@ sap.ui.define([
                         jsonModel.setData(boomDataValues);
                         bomTable.setBusy(false);
                         that.toggleSaveButton();
+                        that._afterBoomDataLoaded()
                     },
                     error: function (error) {
                         MessageToast.show("Error al obtener los materiales del B.O.M");
@@ -2476,25 +2505,330 @@ sap.ui.define([
                 });
             },
 
-            onChargListMultiComboBoxSelectionChange: function (oEvent) {
-                const selectedChargs = oEvent.getSource().getSelectedItems();
-                if (selectedChargs.length === 0) return;
+            // onChargListMultiComboBoxSelectionChange: function(oEvent) {
+            //     const selectedChargs = oEvent.getSource().getSelectedItems();
+            //     if(selectedChargs.length === 0) return;
 
-                const chargQtys = selectedChargs.map(item => {
-                    const currStrVal = item.getAdditionalText();
-                    let intQty = parseFloat(currStrVal.replace(',', '.'));
-                    return intQty;
+            //     const chargQtys = selectedChargs.map(item => {
+            //         const currStrVal = item.getAdditionalText();
+            //         let intQty = parseFloat(currStrVal.replace(',', '.'));
+            //         return intQty;
+            //     });
+
+            //     let chargSum = 0;
+            //     chargQtys.forEach(qty => chargSum += qty);
+
+            //     if(chargSum === 0) return;
+
+            //     MessageToast.show(`Cantidad total seleccionada: ${chargSum.toFixed(3)}`);
+            //     console.log(chargSum.toFixed(3));
+            // },
+
+            // _applyChargListLogic: function (oMultiComboBox, oBindingContext) {
+            //     const oModel = this.getView().getModel("boomData");
+            //     const sPath = oBindingContext.getPath() + "/ChargList";
+            //     const aChargList = oModel.getProperty(sPath);
+            //     const selectedKeys = oMultiComboBox.getSelectedKeys() || [];
+            //     const requiredQuantity = parseFloat(oBindingContext.getProperty("CompQty"));
+
+            //     // Función auxiliar para parsear números
+            //     const parseFormattedNumber = (str) => {
+            //         if (typeof str === 'number') return str;
+            //         return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+            //     };
+
+            //     // Función auxiliar para formatear números
+            //     const formatNumber = (num) => {
+            //         return num.toFixed(3).replace('.', ',');
+            //     };
+
+            //     // Si no hay lotes seleccionados, no hacer nada
+            //     if (selectedKeys.length === 0) return;
+
+            //     // Guardar las cantidades originales si no existen
+            //     aChargList.forEach(charge => {
+            //         if (charge.OriginalClabs === undefined) {
+            //             charge.OriginalClabs = charge.Clabs;
+            //         }
+            //         if (charge.Enabled === undefined) {
+            //             charge.Enabled = true;
+            //         }
+            //     });
+
+            //     // Calcular la suma de los items seleccionados
+            //     let accumulatedSum = 0;
+            //     selectedKeys.forEach(key => {
+            //         const charge = aChargList.find(c => c.Charg === key);
+            //         if (charge) {
+            //             const currentQty = parseFormattedNumber(charge.Clabs);
+            //             accumulatedSum += currentQty;
+            //         }
+            //     });
+
+            //     // Calcular la cantidad restante
+            //     const remainingQuantity = requiredQuantity - accumulatedSum;
+
+            //     // Actualizar cantidades según la lógica
+            //     aChargList.forEach(charge => {
+            //         const isSelected = selectedKeys.includes(charge.Charg);
+            //         const originalQty = parseFormattedNumber(charge.OriginalClabs);
+
+            //         if (isSelected) {
+            //             charge.Enabled = true;
+            //         } else {
+            //             if (remainingQuantity <= 0) {
+            //                 charge.Clabs = "0,000";
+            //                 charge.Enabled = false;
+            //             } else {
+            //                 if (originalQty <= remainingQuantity) {
+            //                     charge.Clabs = charge.OriginalClabs;
+            //                 } else {
+            //                     charge.Clabs = formatNumber(remainingQuantity);
+            //                 }
+            //                 charge.Enabled = true;
+            //             }
+            //         }
+            //     });
+
+            //     // Actualizar el modelo
+            //     oModel.setProperty(sPath, aChargList);
+            // },
+
+            _applyChargListLogic: function (oMultiComboBox, oBindingContext) {
+                const oModel = this.getView().getModel("boomData");
+                const sPath = oBindingContext.getPath() + "/ChargList";
+                const aChargList = oModel.getProperty(sPath);
+                const selectedKeys = oMultiComboBox.getSelectedKeys() || [];
+                // Función auxiliar para parsear números
+                const parseFormattedNumber = (str) => {
+                    if (typeof str === 'number') return str;
+                    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+                };
+
+                const requiredQuantity = parseFormattedNumber(oBindingContext.getProperty("CompQty"));
+
+
+                // Función auxiliar para formatear números
+                const formatNumber = (num) => {
+                    return num.toFixed(3).replace('.', ',');
+                };
+
+                // Guardar las cantidades originales si no existen
+                aChargList.forEach(charge => {
+                    if (charge.OriginalClabs === undefined) {
+                        charge.OriginalClabs = charge.Clabs;
+                    }
+                    if (charge.Enabled === undefined) {
+                        charge.Enabled = true;
+                    }
                 });
 
-                let chargSum = 0;
-                chargQtys.forEach(qty => chargSum += qty);
+                // PASO 1: Ajustar las cantidades de todos los lotes según lo que va faltando
+                let tempSum = 0;
+                for (let i = 0; i < aChargList.length; i++) {
+                    const charge = aChargList[i];
+                    const originalQty = parseFormattedNumber(charge.OriginalClabs);
+                    const remaining = requiredQuantity - tempSum;
 
-                if (chargSum === 0) return;
+                    if (remaining > 0) {
+                        if (originalQty >= remaining) {
+                            // Este lote tiene suficiente, ajustar a lo que falta
+                            charge.Clabs = formatNumber(remaining);
+                        } else {
+                            // Este lote no es suficiente, mantener cantidad original
+                            charge.Clabs = charge.OriginalClabs;
+                        }
+                        tempSum += parseFormattedNumber(charge.Clabs);
+                    } else {
+                        // Ya no se necesita más cantidad
+                        charge.Clabs = "0,000";
+                    }
+                }
 
-                MessageToast.show(`Cantidad total seleccionada: ${chargSum.toFixed(3)}`);
-                console.log(chargSum.toFixed(3));
+                // PASO 2: Seleccionar automáticamente los lotes necesarios
+                let accumulatedSum = 0;
+                let newSelectedKeys = [];
+
+                for (let i = 0; i < aChargList.length; i++) {
+                    const charge = aChargList[i];
+                    const currentQty = parseFormattedNumber(charge.Clabs);
+
+                    if (currentQty > 0 && accumulatedSum < requiredQuantity) {
+                        newSelectedKeys.push(charge.Charg);
+                        accumulatedSum += currentQty;
+
+                        if (accumulatedSum >= requiredQuantity) {
+                            break;
+                        }
+                    }
+                }
+
+                // Actualizar las keys seleccionadas en el MultiComboBox
+                oMultiComboBox.setSelectedKeys(newSelectedKeys);
+
+                // PASO 3: Actualizar estado de enabled según selección
+                aChargList.forEach(charge => {
+                    const isSelected = newSelectedKeys.includes(charge.Charg);
+                    charge.Enabled = isSelected;
+                });
+
+                // Actualizar el modelo
+                oModel.setProperty(sPath, aChargList);
             },
 
+            _afterBoomDataLoaded: function () {
+                const oTable = this.byId("bomTable");
+                const aItems = oTable.getItems();
+
+                // aItems.forEach(oItem => {
+                //     const oMultiComboBox = oItem.getCells().find(cell =>
+                //         cell.getMetadata().getName() === "sap.m.MultiComboBox"
+                //     );
+
+                //     if (oMultiComboBox) {
+                //         const oBindingContext = oMultiComboBox.getBindingContext("boomData");
+                //         if (oBindingContext) {
+                //             this._applyChargListLogic(oMultiComboBox, oBindingContext);
+                //         }
+                //     }
+                // });
+
+                aItems.forEach(oItem => {
+                    const aCells = oItem.getCells();
+                    aCells.forEach(oCell => {
+                        // Buscar el FlexBox que contiene el MultiComboBox
+                        if (oCell.getMetadata().getName() === "sap.m.FlexBox") {
+                            const aFlexBoxItems = oCell.getItems();
+                            aFlexBoxItems.forEach(oFlexItem => {
+                                if (oFlexItem.getMetadata().getName() === "sap.m.MultiComboBox") {
+                                    const oBindingContext = oFlexItem.getBindingContext("boomData");
+                                    if (oBindingContext) {
+                                        // Aplicar la lógica automáticamente si hay lotes preseleccionados
+                                        this._applyChargListLogic(oFlexItem, oBindingContext);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                });
+
+            },
+
+            onChargListMultiComboBoxSelectionChange: function (oEvent) {
+                const oMultiComboBox = oEvent.getSource();
+                const selectedItems = oMultiComboBox.getSelectedItems();
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+
+                // Función auxiliar para parsear números con formato (1.000,000 o 1000,000)
+                const parseFormattedNumber = (str) => {
+                    if (typeof str === 'number') return str;
+                    // Remover puntos de miles y reemplazar coma decimal por punto
+                    return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+                };
+
+                // Obtener el contexto de la fila para acceder a la cantidad requerida
+                const oBindingContext = oMultiComboBox.getBindingContext("boomData");
+                const requiredQuantity = parseFormattedNumber(oBindingContext.getProperty("CompQty"));
+
+                // Obtener el modelo y el path de la lista de lotes
+                const oModel = this.getView().getModel("boomData");
+                const sPath = oBindingContext.getPath() + "/ChargList";
+                const aChargList = oModel.getProperty(sPath);
+
+
+                // Función auxiliar para formatear números (con coma como decimal)
+                const formatNumber = (num) => {
+                    return num.toFixed(3).replace('.', ',');
+                };
+
+                if (selectedItems.length === 0) {
+                    // Si no hay selección, restaurar cantidades originales y habilitar todos
+                    aChargList.forEach(charge => {
+                        if (charge.OriginalClabs !== undefined) {
+                            charge.Clabs = charge.OriginalClabs;
+                        }
+                        charge.Enabled = true;
+                    });
+                    oModel.setProperty(sPath, aChargList);
+                    return;
+                }
+
+                // Guardar las cantidades originales si no existen
+                aChargList.forEach(charge => {
+                    if (charge.OriginalClabs === undefined) {
+                        charge.OriginalClabs = charge.Clabs;
+                    }
+                    if (charge.Enabled === undefined) {
+                        charge.Enabled = true;
+                    }
+                });
+
+                // Obtener las claves seleccionadas
+                const selectedKeys = selectedItems.map(item => item.getKey());
+
+                // Calcular la suma de los items seleccionados usando la cantidad ACTUAL (Clabs), no la original
+                let accumulatedSum = 0;
+                selectedKeys.forEach(key => {
+                    const charge = aChargList.find(c => c.Charg === key);
+                    if (charge) {
+                        // CAMBIO IMPORTANTE: Usar Clabs (cantidad actual) en lugar de OriginalClabs
+                        const currentQty = parseFormattedNumber(charge.Clabs);
+                        accumulatedSum += currentQty;
+                    }
+                });
+
+                // Calcular la cantidad restante para alcanzar el requerido
+                const remainingQuantity = requiredQuantity - accumulatedSum;
+
+                // Actualizar cantidades según la lógica
+                aChargList.forEach(charge => {
+                    const isSelected = selectedKeys.includes(charge.Charg);
+                    const originalQty = parseFormattedNumber(charge.OriginalClabs);
+
+                    if (isSelected) {
+                        // Los items seleccionados mantienen su cantidad ACTUAL (ya ajustada)
+                        // No restaurar a OriginalClabs, mantener lo que ya tiene
+                        charge.Enabled = true;
+                    } else {
+                        // Los items NO seleccionados
+                        if (remainingQuantity <= 0) {
+                            // Si ya se alcanzó o superó la cantidad requerida, se ponen a 0
+                            charge.Clabs = "0,000";
+                            charge.Enabled = false;
+                        } else {
+                            // Si aún falta cantidad
+                            // Mantener la cantidad original si es menor o igual a lo que falta
+                            if (originalQty <= remainingQuantity) {
+                                charge.Clabs = charge.OriginalClabs;
+                            } else {
+                                // Si la cantidad original es mayor a lo que falta, mostrar lo que falta
+                                charge.Clabs = formatNumber(remainingQuantity);
+                            }
+                            charge.Enabled = true;
+                        }
+                    }
+                });
+
+                // Actualizar el modelo
+                oModel.setProperty(sPath, aChargList);
+
+                // Mostrar toast con la suma actual
+                let totalMessage;
+                if (accumulatedSum >= requiredQuantity) {
+                    totalMessage = oResourceBundle.getText("quantityCompleted", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
+                    this.toggleSaveButton()
+                } else {
+                    totalMessage = oResourceBundle.getText("actualQuantity", [formatNumber(accumulatedSum), formatNumber(remainingQuantity)]);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                }
+
+                MessageToast.show(totalMessage);
+
+                // Guardar las claves seleccionadas en el modelo
+                oModel.setProperty(oBindingContext.getPath() + "/SelectedCharg", selectedKeys);
+            },
+
+            // Mostrar mensaje con,
             getMaterialSet: function () {
                 let oModel = this.getOwnerComponent().getModel();
                 let currentProdOrder = this.getView().byId("productionOrder").getValue();
@@ -2536,7 +2870,15 @@ sap.ui.define([
             // BAPI CALL
 
             onPressSave: function (oEvent) {
-                let that = this;
+                const that = this;
+                const chargQuantityCorrect = this.checkChargsQuantity();
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+
+                if (!chargQuantityCorrect) {
+                    sap.m.MessageBox.error(oResourceBundle.getText("insufficientBatchQty"));
+                    return;
+                }
+
                 let currBtnId = oEvent.getSource().getId().split('-').pop();
                 let oModel = this.getOwnerComponent().getModel();
                 let emptyFields = this.checkValueState();
@@ -2549,6 +2891,9 @@ sap.ui.define([
 
                 let defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
                 let bomSet = boomForSave[0];
+                let bomItemsSet = bomSet.flatMap(item => item.ChargList)
+                    .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
+
 
                 let oParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
@@ -2566,12 +2911,13 @@ sap.ui.define([
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
                     EvAufnr: defectInfoValues.ProductionOrder,
-                    BomItemSet: bomSet.map((boomItem, index) => {
+
+                    BomItemSet: bomItemsSet.map((boomItem, index) => {
                         return {
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
-                            CompQty: boomItem.CompQty.trim(),
-                            Charg: boomItem.SelectedCharg,
+                            CompQty: boomItem.Clabs ? boomItem.Clabs : boomItem.CompQty,
+                            Charg: boomItem.Charg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,
                             Message: boomItem.Message,
@@ -2654,6 +3000,24 @@ sap.ui.define([
 
                     })
                 }
+            },
+
+            checkChargsQuantity: function () {
+                const oModel = this.getView().getModel("boomData");
+                const multiBoxData = oModel.getData().map(item => item.ChargList).filter(list => list.length > 1);
+                const selectedChargs = multiBoxData[0].filter(charg => charg.Enabled)
+                const compQty = parseInt(selectedChargs[0].CompQty)
+
+                let totalQty = 0;
+                selectedChargs.forEach(charg => {
+                    totalQty += parseFloat(charg.Clabs);
+                });
+
+                if (totalQty !== compQty) {
+                    return false;
+                }
+
+                return true;
             },
 
             checkEquipment: function () {
@@ -2939,6 +3303,7 @@ sap.ui.define([
                         this.byId(currId).setValueStateText('');
                         return
                     }
+
                     this.checkOperatorNumber(currValue);
                     return;
                 }
@@ -3039,7 +3404,13 @@ sap.ui.define([
             },
 
             toggleSaveButton: function () {
-                let boomMessages = boomForSave.filter(item => item.Message);
+                let boomMessages = boomForSave.flatMap(item => item).filter(item => item.Message)
+
+                if(boomMessages.length > 0) {
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    return;
+                }
+
                 let stockChecked = this.getChechStatus();
                 let defectInfo = AppJsonModel.getProperty('/DefectInfo');
                 let defectInfoKeys = Object.keys(defectInfo);
@@ -3054,33 +3425,6 @@ sap.ui.define([
                         emptyInputs++;
                     }
                 }
-                //Grisa "Save" cuando se ingresa Rapid error
-                // let sProductionOrder = AppJsonModel.getProperty('/DefectInfo/ProductionOrder');
-                // //let sPatch = "/ZfmGetBomSet('" + sProductionOrder + "')";
-                // let obomTable = this.byId("bomTable").getModel();
-
-                // if (obomTable) {
-                //     let oItems = this.byId("bomTable").getBinding("items");
-                //     let sCant = oItems.getLength();
-                //     let sError = false;
-                //     if (sCant > 0) {
-
-                //         for (let i = 0; i < oItems.getLength(); i++) {
-                //             let sIndex = "/" + i;
-                //             if (oItems.getModel().getProperty(sIndex).Message.length > 0) {
-                //                 let sError = true;
-                //             }
-                //         }
-
-                //         if (sError == true) {
-                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
-                //             return;
-                //         } else {
-                //             AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
-                //             return;
-                //         }
-                //     }
-                // }
 
                 if (boomMessages.length > 0) {
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
@@ -3149,12 +3493,14 @@ sap.ui.define([
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const currentPlant = AppJsonModel.getProperty('/DefectInfo').Plant
                 let aFilter;
+
                 if (currentPlant === 'PT10') {
                     let combinedFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber.padStart(maxOpNumberLength, '0')), new Filter('subty', FilterOperator.EQ, '0009'), new Filter('tipo', FilterOperator.EQ, 'U')];
                     aFilter = combinedFilter;
                 } else {
                     aFilter = [new Filter('empl_code', FilterOperator.EQ, opNumber.padStart(maxOpNumberLength, '0')), new Filter('tipo', FilterOperator.EQ, 'P')];
                 }
+
                 MatchcodesService.callGetService('/CheckPernr', aFilter)
                     .then(operatorData => {
                         if (operatorData.results.length === 0) {
@@ -3164,6 +3510,7 @@ sap.ui.define([
                             this.toggleSaveButton()
                             return;
                         }
+
                         this.byId('OperatorNumber').setValueState('None')
                         this.byId('OperatorNumber').setValueStateText('')
                         this.toggleSaveButton();
