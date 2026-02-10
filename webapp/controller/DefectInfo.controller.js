@@ -3138,11 +3138,12 @@ sap.ui.define([
 
                 const printParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
-                    IvIsStockMovement: this.getChechStatus(),
+                    // IvIsStockMovement: this.getChechStatus(),
                     IvSerialno: defectInfoValues.SerialNumber,
                     IvSortf: defectInfoValues.ProductOrderOperation,
                     IvWerks: defectInfoValues.Plant,
                     IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvMaterial: defectInfoValues.Material,
                     IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
                     IvRepCode: defectInfoValues.RepairCode,
                     IvDlCode: defectInfoValues.ElementCode,
@@ -3151,8 +3152,8 @@ sap.ui.define([
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
-                    EvAufnr: defectInfoValues.ProductionOrder,
-                    IV_REPRINT: "X"
+                    IvReprint: "X"
+                    // EvAufnr: defectInfoValues.ProductionOrder,
                 }
 
                 const slugData = JSON.stringify(printParameters);
@@ -3165,29 +3166,59 @@ sap.ui.define([
 
                 // abrimos dialog de proceso
                 busyDialog4.open();
-                $.ajax({
-                    url: printPath,
-                    type: 'GET',
-                    headers: {
-                        "Slug": slugData,
-                        "X-CSRF-Token": oModel.getSecurityToken()
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function (blob) {
-                        // cerramos dialog
-                        busyDialog4.close();
+                // $.ajax({
+                //     url: printPath,
+                //     type: 'GET',
+                //     headers: {
+                //         "Slug": slugData,
+                //         "X-CSRF-Token": oModel.getSecurityToken()
+                //     },
+                //     xhrFields: {
+                //         responseType: 'blob'
+                //     },
+                //     success: function (blob, textStatus, jqXHR) {
+                //         // cerramos dialog
+                //         busyDialog4.close();
+                //         var sapMessage = jqXHR.getResponseHeader('sap-message');
 
-                        that._printPdfBlob(blob);
+                //         const parser = new DOMParser();
+                //         const xmlDoc = parser.parseFromString(sapMessage, "text/xml");
+                //         let messageText = "";
+
+                //         messageText = xmlDoc.getElementsByTagName("message")[0]?.textContent || "";
+
+                //         if (messageText.trim().length > 0 ) {
+                //             MessageBox.error(messageText)
+                //             return
+                //         }
+
+                //         that._printPdfBlob(blob);
+                //     },
+                //     error: function (error) {
+                //         busyDialog4.close();
+
+                //         console.log(error)
+                //         MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
+                //             title: "Reprint Error",
+                //         });
+                //     }
+                // })
+
+
+                // Function Import
+                oModel.callFunction('/ZfmSaveDefectPrintVal', {
+                    urlParameters: printParameters,
+                    method: "GET",
+                    success: function (oData) {
+                        busyDialog4.close();
+                        console.log(oData);
                     },
                     error: function (error) {
                         busyDialog4.close();
-
-                        console.log(error)
-                        MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
-                            title: "Reprint Error",
-                        });
+                        
+                        const msgError = JSON.parse(error.responseText).error.message.value;
+                        MessageBox.error(msgError);
+                        return;
                     }
                 })
             },
@@ -3220,6 +3251,35 @@ sap.ui.define([
                         }, 1000);
                     }, 250);
                 };
+            },
+
+            _readBlobError: function (blob) {
+                if (!blob || !(blob instanceof Blob)) {
+                    sap.m.MessageBox.error("Error al generar la etiqueta");
+                    return;
+                }
+
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var errorText = e.target.result;
+                    var sErrorMsg = "Error al generar la etiqueta";
+
+                    try {
+                        var oError = JSON.parse(errorText);
+                        if (oError.error && oError.error.message) {
+                            sErrorMsg = oError.error.message.value || oError.error.message;
+                        }
+                    } catch (parseError) {
+                        if (errorText && errorText.length < 200) {
+                            sErrorMsg += ": " + errorText;
+                        }
+                    }
+
+                    sap.m.MessageBox.error(sErrorMsg);
+                };
+
+                reader.readAsText(blob);
             },
 
             _showPdfDialog: function (blob, sOrdenProduccion) {
