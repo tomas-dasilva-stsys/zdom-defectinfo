@@ -3166,56 +3166,40 @@ sap.ui.define([
 
                 // abrimos dialog de proceso
                 busyDialog4.open();
-                // $.ajax({
-                //     url: printPath,
-                //     type: 'GET',
-                //     headers: {
-                //         "Slug": slugData,
-                //         "X-CSRF-Token": oModel.getSecurityToken()
-                //     },
-                //     xhrFields: {
-                //         responseType: 'blob'
-                //     },
-                //     success: function (blob, textStatus, jqXHR) {
-                //         // cerramos dialog
-                //         busyDialog4.close();
-                //         var sapMessage = jqXHR.getResponseHeader('sap-message');
-
-                //         const parser = new DOMParser();
-                //         const xmlDoc = parser.parseFromString(sapMessage, "text/xml");
-                //         let messageText = "";
-
-                //         messageText = xmlDoc.getElementsByTagName("message")[0]?.textContent || "";
-
-                //         if (messageText.trim().length > 0 ) {
-                //             MessageBox.error(messageText)
-                //             return
-                //         }
-
-                //         that._printPdfBlob(blob);
-                //     },
-                //     error: function (error) {
-                //         busyDialog4.close();
-
-                //         console.log(error)
-                //         MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
-                //             title: "Reprint Error",
-                //         });
-                //     }
-                // })
-
 
                 // Function Import
                 oModel.callFunction('/ZfmSaveDefectPrintVal', {
                     urlParameters: printParameters,
                     method: "GET",
-                    success: function (oData) {
-                        busyDialog4.close();
-                        console.log(oData);
+                    success: function (_oData) {
+                        $.ajax({
+                            url: printPath,
+                            type: 'GET',
+                            headers: {
+                                "Slug": slugData,
+                                "X-CSRF-Token": oModel.getSecurityToken()
+                            },
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            success: function (blob) {
+                                // cerramos dialog
+                                busyDialog4.close();
+                                that._printPdfBlob(blob);
+                            },
+                            error: function (error) {
+                                busyDialog4.close();
+
+                                console.log(error)
+                                MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
+                                    title: "Reprint Error",
+                                });
+                            }
+                        })
                     },
                     error: function (error) {
                         busyDialog4.close();
-                        
+
                         const msgError = JSON.parse(error.responseText).error.message.value;
                         MessageBox.error(msgError);
                         return;
