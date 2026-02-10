@@ -503,7 +503,6 @@
                     text="{i18n>saveAndPrint}"
                     tooltip="{i18n>saveAndPrint}"
                     press="onPressSaveAndPrint"
-                    type="Emphasized"
                 />
                 <Button
                     id="reprintBtn"
@@ -511,7 +510,6 @@
                     text="{i18n>reprint}"
                     tooltip="{i18n>reprint}"
                     press="onPressReprint"
-                    type="Emphasized"
                 />
                 <Button
                     id="saveAndDupBtn"

@@ -3002,15 +3002,18 @@ sap.ui.define([
             },
 
             onPressSaveAndPrint: function () {
+                const that = this;
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const emptyFields = this.checkValueState();
                 if (emptyFields) return;
 
+                const oModel = this.getOwnerComponent().getModel();
                 const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
                 const bomSet = boomForSave[0];
                 let bomItemsSet = bomSet.flatMap(item => item.ChargList)
                     .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
 
-                const oParameters = {
+                const oSaveParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
                     IvIsStockMovement: this.getChechStatus(),
                     IvSerialno: defectInfoValues.SerialNumber,
@@ -3045,15 +3048,220 @@ sap.ui.define([
                     ReturnSet: []
                 }
 
-                console.log(oParameters);
+                const printParameters = {
+                    IvAufnr: defectInfoValues.ProductionOrder,
+                    IvIsStockMovement: this.getChechStatus(),
+                    IvSerialno: defectInfoValues.SerialNumber,
+                    IvSortf: defectInfoValues.ProductOrderOperation,
+                    IvWerks: defectInfoValues.Plant,
+                    IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
+                    IvRepCode: defectInfoValues.RepairCode,
+                    IvDlCode: defectInfoValues.ElementCode,
+                    IvDCode: defectInfoValues.DefectCode,
+                    IvCauseCodegruppe: defectInfoValues.CauseCodeGruppe,
+                    IvCauseCode: defectInfoValues.CauseCode,
+                    IvEqnr: defectInfoValues.Equipment,
+                    IvEmplCode: defectInfoValues.OperatorNumber,
+                    EvAufnr: defectInfoValues.ProductionOrder,
+                }
 
+                const slugData = JSON.stringify(printParameters);
+                const printPath = `${oModel.sServiceUrl}/ZfmSaveDefectPrintCollection('${defectInfoValues.ProductionOrder}')/$value`;
+
+                let sBusy = oResourceBundle.getText("processing");
+                const busyDialog4 = (sap.ui.getCore().byId("busy4")) ? sap.ui.getCore().byId("busy4") : new sap.m.BusyDialog('busy4', {
+                    title: sBusy
+                });
+
+                // abrimos dialog de proceso
+                busyDialog4.open();
+                oModel.create('/ZfmSaveDefectSet', oSaveParameters, {
+                    success: function (res) {
+                        oMessagePopover.getModel().setData('');
+                        let resMessages = res.ReturnSet.results.map(msgs => msgs);
+                        let w_data = [];
+
+                        resMessages.forEach(msg => {
+                            w_data.push({
+                                T: that.setMessageType(msg.Type),
+                                S: msg.Message
+                            })
+                        })
+
+                        let prevMsgs = Array.from(oMessagePopover.getModel().getData());
+                        let upDatedMsgs = [...prevMsgs, ...w_data];
+                        oMessagePopover.getModel().setData(upDatedMsgs);
+                        oMessagePopover.getModel().refresh(true);
+                        that.getView().getModel('popoverModel').getData().messageLength = upDatedMsgs.length;
+                        that.getView().getModel('popoverModel').getData().type = "Emphasized";
+                        that.getView().getModel('popoverModel').refresh(true);
+
+                        $.ajax({
+                            url: printPath,
+                            type: 'GET',
+                            headers: {
+                                "Slug": slugData,
+                                "X-CSRF-Token": oModel.getSecurityToken()
+                            },
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            success: function (blob) {
+                                // cerramos dialog
+                                busyDialog4.close();
+
+                                // that._showPdfDialog(blob, defectInfoValues.ProductionOrder);
+                                that._printPdfBlob(blob);
+                            },
+                            error: function (error) {
+                                console.log(error)
+                            }
+                        })
+                    },
+
+                    error: function (error) {
+                        sap.ui.core.BusyIndicator.hide();
+                        console.log(error)
+                    }
+                })
             },
 
             onPressReprint: function () {
+                const that = this;
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
                 const emptyFields = this.checkValueState();
                 if (emptyFields) return;
 
+                const oModel = this.getOwnerComponent().getModel();
                 const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
+
+                const printParameters = {
+                    IvAufnr: defectInfoValues.ProductionOrder,
+                    IvIsStockMovement: this.getChechStatus(),
+                    IvSerialno: defectInfoValues.SerialNumber,
+                    IvSortf: defectInfoValues.ProductOrderOperation,
+                    IvWerks: defectInfoValues.Plant,
+                    IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
+                    IvRepCode: defectInfoValues.RepairCode,
+                    IvDlCode: defectInfoValues.ElementCode,
+                    IvDCode: defectInfoValues.DefectCode,
+                    IvCauseCodegruppe: defectInfoValues.CauseCodeGruppe,
+                    IvCauseCode: defectInfoValues.CauseCode,
+                    IvEqnr: defectInfoValues.Equipment,
+                    IvEmplCode: defectInfoValues.OperatorNumber,
+                    EvAufnr: defectInfoValues.ProductionOrder,
+                    IV_REPRINT: "X"
+                }
+
+                const slugData = JSON.stringify(printParameters);
+                const printPath = `${oModel.sServiceUrl}/ZfmSaveDefectPrintCollection('${defectInfoValues.ProductionOrder}')/$value`;
+
+                let sBusy = oResourceBundle.getText("processing");
+                const busyDialog4 = (sap.ui.getCore().byId("busy4")) ? sap.ui.getCore().byId("busy4") : new sap.m.BusyDialog('busy4', {
+                    title: sBusy
+                });
+
+                // abrimos dialog de proceso
+                busyDialog4.open();
+                $.ajax({
+                    url: printPath,
+                    type: 'GET',
+                    headers: {
+                        "Slug": slugData,
+                        "X-CSRF-Token": oModel.getSecurityToken()
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function (blob) {
+                        // cerramos dialog
+                        busyDialog4.close();
+
+                        that._printPdfBlob(blob);
+                    },
+                    error: function (error) {
+                        busyDialog4.close();
+
+                        console.log(error)
+                        MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
+                            title: "Reprint Error",
+                        });
+                    }
+                })
+            },
+
+            _printPdfBlob: function (blob) {
+                let blobUrl = URL.createObjectURL(blob);
+
+                // Crear iframe oculto
+                let iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.position = 'fixed';
+                iframe.src = blobUrl;
+
+                document.body.appendChild(iframe);
+
+                iframe.onload = function () {
+                    // Esperar un momento para que cargue completamente
+                    setTimeout(function () {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (e) {
+                            // Si falla, abrir en nueva pestaña
+                            window.open(blobUrl, '_blank');
+                        }
+
+                        // Limpiar después de 1 segundo
+                        setTimeout(function () {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 1000);
+                    }, 250);
+                };
+            },
+
+            _showPdfDialog: function (blob, sOrdenProduccion) {
+                var that = this;
+                var blobUrl = URL.createObjectURL(blob);
+
+                if (!this._pdfDialog) {
+                    this._pdfDialog = new sap.m.Dialog({
+                        title: "Etiqueta de Defectos",
+                        contentWidth: "80%",
+                        contentHeight: "90%",
+                        content: [
+                            new sap.ui.core.HTML({
+                                content: "<iframe id='pdfFrame' style='width:100%;height:600px;border:none;'></iframe>"
+                            })
+                        ],
+                        beginButton: new sap.m.Button({
+                            text: "Imprimir",
+                            press: function () {
+                                var iframe = document.getElementById('pdfFrame');
+                                iframe.contentWindow.print();
+                            }
+                        }),
+                        endButton: new sap.m.Button({
+                            text: "Descargar",
+                            press: function () {
+                                that._downloadPDF(blob, sOrdenProduccion + "_labeldefects.pdf");
+                            }
+                        }),
+                        afterClose: function () {
+                            URL.revokeObjectURL(blobUrl);
+                        }
+                    });
+                    this.getView().addDependent(this._pdfDialog);
+                }
+
+                this._pdfDialog.open();
+
+                // Asignar el PDF al iframe
+                setTimeout(function () {
+                    document.getElementById('pdfFrame').src = blobUrl;
+                }, 100);
             },
 
             checkChargsQuantity: function () {
