@@ -498,6 +498,27 @@
                 />
                 <ToolbarSpacer />
                 <Button
+                    id="previewBtn"
+                    enabled="{AppJsonModel>/Enabled/PreviewBtn}"
+                    text="{i18n>preview}"
+                    tooltip="{i18n>preview}"
+                    press="onPressPreview"
+                />
+                <Button
+                    id="saveAndPrintBtn"
+                    enabled="{AppJsonModel>/Enabled/SaveAndPrintBtn}"
+                    text="{i18n>saveAndPrint}"
+                    tooltip="{i18n>saveAndPrint}"
+                    press="onPressSaveAndPrint"
+                />
+                <Button
+                    id="reprintBtn"
+                    enabled="{AppJsonModel>/Enabled/ReprintBtn}"
+                    text="{i18n>reprint}"
+                    tooltip="{i18n>reprint}"
+                    press="onPressReprint"
+                />
+                <Button
                     id="saveAndDupBtn"
                     text="{i18n>saveAndDuplicate}"
                     press=".onPressSave"
