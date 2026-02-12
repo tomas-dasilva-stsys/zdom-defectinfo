@@ -498,6 +498,13 @@
                 />
                 <ToolbarSpacer />
                 <Button
+                    id="previewBtn"
+                    enabled="{AppJsonModel>/Enabled/PreviewBtn}"
+                    text="{i18n>preview}"
+                    tooltip="{i18n>preview}"
+                    press="onPressPreview"
+                />
+                <Button
                     id="saveAndPrintBtn"
                     enabled="{AppJsonModel>/Enabled/SaveAndPrintBtn}"
                     text="{i18n>saveAndPrint}"

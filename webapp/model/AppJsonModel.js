@@ -286,6 +286,7 @@ sap.ui.define([
                     "SaveBtn": false,
                     "SaveAndPrintBtn": false,
                     "ReprintBtn": false,
+                    "PreviewBtn": false,
                     "Select": true,
                     "guardar": ""
                 },

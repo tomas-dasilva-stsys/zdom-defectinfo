@@ -3050,11 +3050,11 @@ sap.ui.define([
 
                 const printParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
-                    IvIsStockMovement: this.getChechStatus(),
                     IvSerialno: defectInfoValues.SerialNumber,
                     IvSortf: defectInfoValues.ProductOrderOperation,
                     IvWerks: defectInfoValues.Plant,
                     IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvMaterial: defectInfoValues.Material,
                     IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
                     IvRepCode: defectInfoValues.RepairCode,
                     IvDlCode: defectInfoValues.ElementCode,
@@ -3063,7 +3063,7 @@ sap.ui.define([
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
-                    EvAufnr: defectInfoValues.ProductionOrder,
+                    IvReprint: "X"
                 }
 
                 const slugData = JSON.stringify(printParameters);
@@ -3097,25 +3097,33 @@ sap.ui.define([
                         that.getView().getModel('popoverModel').getData().type = "Emphasized";
                         that.getView().getModel('popoverModel').refresh(true);
 
-                        $.ajax({
-                            url: printPath,
-                            type: 'GET',
-                            headers: {
-                                "Slug": slugData,
-                                "X-CSRF-Token": oModel.getSecurityToken()
-                            },
-                            xhrFields: {
-                                responseType: 'blob'
-                            },
-                            success: function (blob) {
-                                // cerramos dialog
-                                busyDialog4.close();
+                        oModel.callFunction('/ZfmSaveDefectPrintVal', {
+                            urlParameters: printParameters,
+                            method: "GET",
+                            success: function (_oData) {
+                                // const oDataRes = oData.ZfmSaveDefectPrintVal;
+                                // const { Message, Type } = oDataRes;
 
-                                // that._showPdfDialog(blob, defectInfoValues.ProductionOrder);
-                                that._printPdfBlob(blob);
+                                let w_data = [{
+                                    T: "Information",
+                                    S: "Print successfull"
+                                }]
+
+                                let prevMsgs = Array.from(oMessagePopover.getModel().getData());
+                                let upDatedMsgs = [...prevMsgs, ...w_data];
+                                oMessagePopover.getModel().setData(upDatedMsgs);
+                                oMessagePopover.getModel().refresh(true);
+                                that.getView().getModel('popoverModel').getData().messageLength = upDatedMsgs.length;
+                                that.getView().getModel('popoverModel').getData().type = "Emphasized";
+                                that.getView().getModel('popoverModel').refresh(true);
+                                busyDialog4.close();
                             },
                             error: function (error) {
-                                console.log(error)
+                                busyDialog4.close();
+
+                                const msgError = JSON.parse(error.responseText).error.message.value;
+                                MessageBox.error(msgError);
+                                return;
                             }
                         })
                     },
@@ -3171,31 +3179,23 @@ sap.ui.define([
                 oModel.callFunction('/ZfmSaveDefectPrintVal', {
                     urlParameters: printParameters,
                     method: "GET",
-                    success: function (_oData) {
-                        $.ajax({
-                            url: printPath,
-                            type: 'GET',
-                            headers: {
-                                "Slug": slugData,
-                                "X-CSRF-Token": oModel.getSecurityToken()
-                            },
-                            xhrFields: {
-                                responseType: 'blob'
-                            },
-                            success: function (blob) {
-                                // cerramos dialog
-                                busyDialog4.close();
-                                that._printPdfBlob(blob);
-                            },
-                            error: function (error) {
-                                busyDialog4.close();
+                    success: function (oData) {
+                        const oDataRes = oData.ZfmSaveDefectPrintVal;
+                        const { Message, Type } = oDataRes;
 
-                                console.log(error)
-                                MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
-                                    title: "Reprint Error",
-                                });
-                            }
-                        })
+                        let w_data = [{
+                            T: that.setMessageType(Type),
+                            S: Message
+                        }]
+
+                        let prevMsgs = Array.from(oMessagePopover.getModel().getData());
+                        let upDatedMsgs = [...prevMsgs, ...w_data];
+                        oMessagePopover.getModel().setData(upDatedMsgs);
+                        oMessagePopover.getModel().refresh(true);
+                        that.getView().getModel('popoverModel').getData().messageLength = upDatedMsgs.length;
+                        that.getView().getModel('popoverModel').getData().type = "Emphasized";
+                        that.getView().getModel('popoverModel').refresh(true);
+                        busyDialog4.close();
                     },
                     error: function (error) {
                         busyDialog4.close();
@@ -3203,6 +3203,70 @@ sap.ui.define([
                         const msgError = JSON.parse(error.responseText).error.message.value;
                         MessageBox.error(msgError);
                         return;
+                    }
+                })
+            },
+
+            onPressPreview: function () {
+                const that = this;
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+                const emptyFields = this.checkValueState();
+                if (emptyFields) return;
+
+                const oModel = this.getOwnerComponent().getModel();
+                const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
+
+                const printParameters = {
+                    IvAufnr: defectInfoValues.ProductionOrder,
+                    IvSerialno: defectInfoValues.SerialNumber,
+                    IvSortf: defectInfoValues.ProductOrderOperation,
+                    IvWerks: defectInfoValues.Plant,
+                    IvWorkCtr: defectInfoValues.WorkCenter,
+                    IvMaterial: defectInfoValues.Material,
+                    IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
+                    IvRepCode: defectInfoValues.RepairCode,
+                    IvDlCode: defectInfoValues.ElementCode,
+                    IvDCode: defectInfoValues.DefectCode,
+                    IvCauseCodegruppe: defectInfoValues.CauseCodeGruppe,
+                    IvCauseCode: defectInfoValues.CauseCode,
+                    IvEqnr: defectInfoValues.Equipment,
+                    IvEmplCode: defectInfoValues.OperatorNumber,
+                    IvReprint: "X"
+                }
+
+                const slugData = JSON.stringify(printParameters);
+                const printPath = `${oModel.sServiceUrl}/ZfmSaveDefectPrintCollection('${defectInfoValues.ProductionOrder}')/$value`;
+
+                let sBusy = oResourceBundle.getText("processing");
+                const busyDialog4 = (sap.ui.getCore().byId("busy4")) ? sap.ui.getCore().byId("busy4") : new sap.m.BusyDialog('busy4', {
+                    title: sBusy
+                });
+
+                // abrimos dialog de proceso
+                busyDialog4.open();
+
+                $.ajax({
+                    url: printPath,
+                    type: 'GET',
+                    headers: {
+                        "Slug": slugData,
+                        "X-CSRF-Token": oModel.getSecurityToken()
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function (blob) {
+                        // cerramos dialog
+                        busyDialog4.close();
+                        that._printPdfBlob(blob);
+                    },
+                    error: function (error) {
+                        busyDialog4.close();
+
+                        console.log(error)
+                        MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
+                            title: "Reprint Error",
+                        });
                     }
                 })
             },
@@ -3729,11 +3793,13 @@ sap.ui.define([
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', true)
+                    AppJsonModel.setInnerProperty('/Enabled', 'PreviewBtn', true)
                     return;
                 }
 
                 if (!emptyInputs) {
                     AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', true)
+                    AppJsonModel.setInnerProperty('/Enabled', 'PreviewBtn', true)
                 }
 
                 if (boomMessages.length > 0) {
@@ -3745,6 +3811,7 @@ sap.ui.define([
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'PreviewBtn', false)
                     return;
                 }
 
@@ -3752,6 +3819,7 @@ sap.ui.define([
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
                     AppJsonModel.setInnerProperty('/Enabled', 'ReprintBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'PreviewBtn', false)
                     return;
                 }
 
