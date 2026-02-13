@@ -3223,7 +3223,7 @@ sap.ui.define([
                     IvWerks: defectInfoValues.Plant,
                     IvWorkCtr: defectInfoValues.WorkCenter,
                     IvMaterial: defectInfoValues.Material,
-                    IvComplainQty: parseFloat(defectInfoValues.Quantity).toFixed(3),
+                    IvComplainQty: String(parseFloat(defectInfoValues.Quantity).toFixed(3)),
                     IvRepCode: defectInfoValues.RepairCode,
                     IvDlCode: defectInfoValues.ElementCode,
                     IvDCode: defectInfoValues.DefectCode,
@@ -3258,14 +3258,23 @@ sap.ui.define([
                     success: function (blob) {
                         // cerramos dialog
                         busyDialog4.close();
+
+                        if (blob.size === 0) {
+                            MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
+                                title: oResourceBundle.getText("labelErrorTitle"),
+                            });
+
+                            return;
+                        }
+
                         that._printPdfBlob(blob);
                     },
                     error: function (error) {
                         busyDialog4.close();
 
                         console.log(error)
-                        MessageBox.error("Error al generar la etiqueta. Vuelva a intentar más tarde.", {
-                            title: "Reprint Error",
+                        MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
+                            title: oResourceBundle.getText("labelErrorTitle"),
                         });
                     }
                 })
