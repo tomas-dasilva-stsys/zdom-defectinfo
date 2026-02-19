@@ -3645,6 +3645,7 @@ sap.ui.define([
                 let bomTable = this.byId("bomTable");
                 let currValue = oEvent.getParameters().value;
                 let currId = oEvent.getParameter("id").split('--').pop();
+
                 if (currId === 'ProductOrderOperation' && !currValue) {
                     this.byId(currId).setValueState("None");
                     bomModel.setData({});
