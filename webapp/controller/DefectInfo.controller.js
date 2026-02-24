@@ -3063,7 +3063,8 @@ sap.ui.define([
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
-                    IvReprint: "X"
+                    IvReprint: "X",
+                    IvPreview: "",
                 }
 
                 const slugData = JSON.stringify(printParameters);
@@ -3160,8 +3161,8 @@ sap.ui.define([
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
-                    IvReprint: "X"
-                    // EvAufnr: defectInfoValues.ProductionOrder,
+                    IvReprint: "X",
+                    IvPreview: "",
                 }
 
                 const slugData = JSON.stringify(printParameters);
@@ -3231,7 +3232,8 @@ sap.ui.define([
                     IvCauseCode: defectInfoValues.CauseCode,
                     IvEqnr: defectInfoValues.Equipment,
                     IvEmplCode: defectInfoValues.OperatorNumber,
-                    IvReprint: "X"
+                    IvReprint: "",
+                    IvPreview: "X"
                 }
 
                 const slugData = JSON.stringify(printParameters);
@@ -3245,39 +3247,54 @@ sap.ui.define([
                 // abrimos dialog de proceso
                 busyDialog4.open();
 
-                $.ajax({
-                    url: printPath,
-                    type: 'GET',
-                    headers: {
-                        "Slug": slugData,
-                        "X-CSRF-Token": oModel.getSecurityToken()
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function (blob) {
-                        // cerramos dialog
-                        busyDialog4.close();
+                oModel.callFunction('/ZfmSaveDefectPrintVal', {
+                    urlParameters: printParameters,
+                    method: "GET",
+                    success: function (oData) {
+                        $.ajax({
+                            url: printPath,
+                            type: 'GET',
+                            headers: {
+                                "Slug": slugData,
+                                "X-CSRF-Token": oModel.getSecurityToken()
+                            },
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            success: function (blob) {
+                                // cerramos dialog
+                                busyDialog4.close();
 
-                        if (blob.size === 0) {
-                            MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
-                                title: oResourceBundle.getText("labelErrorTitle"),
-                            });
+                                if (blob.size === 0) {
+                                    MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
+                                        title: oResourceBundle.getText("labelErrorTitle"),
+                                    });
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        that._printPdfBlob(blob);
+                                that._printPdfBlob(blob);
+                            },
+                            error: function (error) {
+                                busyDialog4.close();
+
+                                console.log(error)
+                                MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
+                                    title: oResourceBundle.getText("labelErrorTitle"),
+                                });
+                            }
+                        })
                     },
                     error: function (error) {
                         busyDialog4.close();
+                        // const msgError = JSON.parse(error.responseText).error.message.value;
 
-                        console.log(error)
-                        MessageBox.error(oResourceBundle.getText("labelGenerationError"), {
-                            title: oResourceBundle.getText("labelErrorTitle"),
-                        });
+                        MessageBox.error(oResourceBundle.getText("noQualityNotification"));
+                        return;
                     }
                 })
+
+
             },
 
             _printPdfBlob: function (blob) {
