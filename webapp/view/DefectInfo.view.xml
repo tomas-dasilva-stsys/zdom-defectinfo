@@ -455,7 +455,7 @@
                                 <Text text="{boomData>CompQty}" />
                                 <FlexBox>
                                     <MultiComboBox
-                                        visible="{= ${boomData>ChargList}.length > 1 }"
+                                        visible="{parts: ['boomData>ChargList', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndMultiple'}"
                                         selectedKeys="{boomData>SelectedCharg}"
                                         showSecondaryValues="true"
                                         selectionChange="onChargListMultiComboBoxSelectionChange"
@@ -475,7 +475,7 @@
                                     </MultiComboBox>
                                     <Text
                                         text="{boomData>Charg}"
-                                        visible="{= ${boomData>ChargList}.length === 1 }"
+                                        visible="{parts: ['boomData>ChargList', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndSingle'}"
                                     />
                                 </FlexBox>
                                 <Text text="{boomData>CompUnit}" />

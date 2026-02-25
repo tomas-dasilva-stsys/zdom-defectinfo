@@ -15,6 +15,14 @@ sap.ui.define([], function () {
             return aChargList.some(function (item) {
                 return item.Charg && item.Charg !== '';
             });
+        },
+
+        hasAvailableStockAndMultiple: function (aChargList, bHasStock) {
+            return aChargList && aChargList.length > 1 && bHasStock === true;
+        },
+
+        hasAvailableStockAndSingle: function (aChargList, bHasStock) {
+            return aChargList && aChargList.length === 1 && bHasStock === true;
         }
     }
 });
