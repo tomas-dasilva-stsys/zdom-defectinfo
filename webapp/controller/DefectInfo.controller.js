@@ -1204,8 +1204,6 @@ sap.ui.define([
             },
 
             onValueHelpDialogEquipment: function (oEvent) {
-                debugger;
-
                 let currentInputId = oEvent.getSource().getId().split('--').at(-1);
                 let currentData = AppJsonModel.getProperty('/DefectInfo');
                 let equipments = AppJsonModel.getProperty('/Equipments');
@@ -2392,6 +2390,7 @@ sap.ui.define([
                                 WhEwm: data.results[i][objNames[14]],
                                 Message: data.results[i][objNames[15]],
                                 Clabs: data.results[i][objNames[16]],
+                                Datetime: data.results[i][objNames[17]]
                             };
 
                             materialFilters.push(data.results[i][objNames[5]]);
@@ -2415,13 +2414,6 @@ sap.ui.define([
                                 // Agregar el nuevo Charg si no existe ya
                                 if (!existingComponent.ChargList.some(c => c.Charg === objValues.Charg)) {
                                     existingComponent.ChargList.push({
-                                        // Charg: objValues.Charg,
-                                        // Licha: objValues.Licha,
-                                        // BinEwm: objValues.BinEwm,
-                                        // WhEwm: objValues.WhEwm,
-                                        // Message: objValues.Message,
-                                        // CompQty: objValues.CompQty,
-                                        // Clabs: objValues.Clabs,
                                         ItemNo: objValues.ItemNo,
                                         Component: objValues.Component,
                                         CompQty: objValues.CompQty,
@@ -2434,7 +2426,18 @@ sap.ui.define([
                                         CompUnit: objValues.CompUnit,
                                         BinEwm: objValues.BinEwm,
                                         WhEwm: objValues.WhEwm,
+                                        Datetime: objValues.Datetime
                                     });
+                                    existingComponent.ChargList.sort((a, b) => {
+                                        const dateA = a.Datetime ? new Date(a.Datetime) : null;
+                                        const dateB = b.Datetime ? new Date(b.Datetime) : null;
+
+                                        if (dateA === null && dateB === null) return 0;  // ambos null, igual
+                                        if (dateA === null) return 1;   // a es null, va al final
+                                        if (dateB === null) return -1;  // b es null, va al final
+                                        return dateA - dateB;
+                                    });
+
                                 }
 
                                 // Actualizar el Charg seleccionado (por defecto el primero o el que tenga stock)
@@ -2472,10 +2475,23 @@ sap.ui.define([
                                     CompUnit: objValues.CompUnit,
                                     BinEwm: objValues.BinEwm,
                                     WhEwm: objValues.WhEwm,
+                                    Datetime: objValues.Datetime
 
                                 }];
                                 objValues.SelectedCharg = objValues.Charg; // Charg seleccionado por defecto
                                 objValues.HasAvailableStock = true;
+                                objValues.ChargListFiltered = objValues.ChargList;
+
+                                objValues.ChargList.sort((a, b) => {
+                                    const dateA = a.Datetime ? new Date(a.Datetime) : null;
+                                    const dateB = b.Datetime ? new Date(b.Datetime) : null;
+
+                                    if (dateA === null && dateB === null) return 0;  // ambos null, igual
+                                    if (dateA === null) return 1;   // a es null, va al final
+                                    if (dateB === null) return -1;  // b es null, va al final
+                                    return dateA - dateB; // ascendente, el más antiguo primero
+                                });
+
                                 componentMap.set(componentKey, objValues);
                             }
 
@@ -2610,6 +2626,12 @@ sap.ui.define([
                     const isSelected = newSelectedKeys.includes(charge.Charg);
                     charge.Enabled = isSelected;
                 });
+
+                // Filtrar ChargListFiltered
+                const aChargListFiltered = aChargList.filter(c =>
+                    parseFormattedNumber(c.Clabs) > 0 || newSelectedKeys.includes(c.Charg)
+                );
+                oModel.setProperty(oBindingContext.getPath() + "/ChargListFiltered", aChargListFiltered);
 
                 // Actualizar el modelo
                 oModel.setProperty(sPath, aChargList);
@@ -2844,8 +2866,15 @@ sap.ui.define([
                             charge.Enabled = false;
                         }
                     });
+
+                    const aChargListFiltered = aChargList.filter(c =>
+                        parseFormattedNumber(c.Clabs) > 0
+                    );
+                    oModel.setProperty(sRowPath + "/ChargListFiltered", aChargListFiltered);
+
                     oModel.setProperty(sPath, aChargList);
                     oModel.setProperty(sRowPath + "/SelectedCharg", []);
+                    this._recalculateSiblingRows(oBindingContext);
                     return;
                 }
 
@@ -2884,6 +2913,12 @@ sap.ui.define([
                         }
                     }
                 });
+
+                // Filtrar ChargListFiltered
+                const aChargListFiltered = aChargList.filter(c =>
+                    parseFormattedNumber(c.Clabs) > 0 || selectedKeys.includes(c.Charg)
+                );
+                oModel.setProperty(sRowPath + "/ChargListFiltered", aChargListFiltered);
 
                 oModel.setProperty(sPath, aChargList);
                 oModel.setProperty(sRowPath + "/SelectedCharg", selectedKeys);
@@ -2928,12 +2963,29 @@ sap.ui.define([
                     const currentSelected = oModel.getProperty(sRowPath + "/SelectedCharg") || [];
 
                     // ── usedStockMap: todas las filas del mismo componente EXCEPTO la que estamos recalculando ──
+                    const aFreshRows = oModel.getProperty("/");
+
                     let usedStockMap = {};
                     aChargList.forEach(c => { usedStockMap[c.Charg] = 0; });
 
-                    for (let j = 0; j < aAllRows.length; j++) {
-                        if (j === i) continue; // No contarse a sí misma
-                        const otherRow = aAllRows[j];
+                    // for (let j = 0; j < aFreshRows.length; j++) {
+                    //     if (j === i) continue; // No contarse a sí misma
+                    //     const otherRow = aFreshRows[j];
+                    //     if (!otherRow || otherRow.Component !== currentComponent) continue;
+
+                    //     const otherSelected = otherRow.SelectedCharg || [];
+                    //     const otherChargList = otherRow.ChargList || [];
+
+                    //     otherChargList.forEach(charge => {
+                    //         if (otherSelected.includes(charge.Charg) && usedStockMap.hasOwnProperty(charge.Charg)) {
+                    //             usedStockMap[charge.Charg] += parseFormattedNumber(charge.Clabs);
+                    //         }
+                    //     });
+                    // }
+
+                    for (let j = 0; j < aFreshRows.length; j++) {
+                        if (j === i) continue;
+                        const otherRow = aFreshRows[j];
                         if (!otherRow || otherRow.Component !== currentComponent) continue;
 
                         const otherSelected = otherRow.SelectedCharg || [];
@@ -2941,7 +2993,12 @@ sap.ui.define([
 
                         otherChargList.forEach(charge => {
                             if (otherSelected.includes(charge.Charg) && usedStockMap.hasOwnProperty(charge.Charg)) {
-                                usedStockMap[charge.Charg] += parseFormattedNumber(charge.Clabs);
+                                const originalQty = parseFormattedNumber(charge.OriginalClabs);
+                                const alreadyConsumedByOthers = usedStockMap[charge.Charg];
+                                const reallyAvailable = Math.max(0, originalQty - alreadyConsumedByOthers);
+                                const otherRequiredQty = parseFormattedNumber(otherRow.CompQty);
+                                const took = Math.min(reallyAvailable, otherRequiredQty);
+                                usedStockMap[charge.Charg] += took;
                             }
                         });
                     }
@@ -2964,6 +3021,51 @@ sap.ui.define([
                         }
                     });
 
+                    // Verificar si los seleccionados actuales aún tienen stock
+                    let newSelected = currentSelected.filter(key => {
+                        const charge = aChargList.find(c => c.Charg === key);
+                        return charge && parseFormattedNumber(charge.Clabs) > 0;
+                    });
+
+                    // Calcular cuánto cubren los seleccionados válidos
+                    let coveredQty = 0;
+                    newSelected.forEach(key => {
+                        const charge = aChargList.find(c => c.Charg === key);
+                        if (charge) coveredQty += parseFormattedNumber(charge.Clabs);
+                    });
+
+                    // Si no alcanza, auto-seleccionar lotes adicionales
+                    if (coveredQty < requiredQty) {
+                        for (let k = 0; k < aChargList.length; k++) {
+                            const charge = aChargList[k];
+                            if (newSelected.includes(charge.Charg)) continue;
+                            const qty = parseFormattedNumber(charge.Clabs);
+                            if (qty > 0 && coveredQty < requiredQty) {
+                                newSelected.push(charge.Charg);
+                                coveredQty += qty;
+                            }
+                            if (coveredQty >= requiredQty) break;
+                        }
+                    }
+
+                    // Deshabilitar los no seleccionados si ya está cubierta la cantidad
+                    const isCovered = coveredQty >= requiredQty;
+                    aChargList.forEach(charge => {
+                        const isSelected = newSelected.includes(charge.Charg);
+                        if (isSelected) {
+                            charge.Enabled = true;
+                        } else if (isCovered) {
+                            charge.Clabs = "0,000";
+                            charge.Enabled = false;
+                        }
+                    });
+
+                    oModel.setProperty(sRowPath + "/SelectedCharg", newSelected);
+
+                    const aChargListFiltered = aChargList.filter(c =>
+                        parseFormattedNumber(c.Clabs) > 0 || newSelected.includes(c.Charg)
+                    );
+                    oModel.setProperty(sRowPath + "/ChargListFiltered", aChargListFiltered);
                     oModel.setProperty(sRowPath + "/ChargList", aChargList);
 
                     // Actualizar el MultiComboBox en la UI
@@ -2983,6 +3085,7 @@ sap.ui.define([
                         });
                         if (oCombo) {
                             oCombo.setSelectedKeys(currentSelected);
+                            oCombo.getBinding("items").refresh();
                         }
                     }
                 }
@@ -3061,9 +3164,7 @@ sap.ui.define([
 
                 let defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
                 let bomSet = boomForSave[0];
-                let bomItemsSet = bomSet.flatMap(item => item.ChargList)
-                    .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
-
+                let bomItemsSet = bomSet.flatMap(item => item.ChargList).filter(item => item.Enabled || item.Charg === '');
 
                 let oParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
@@ -3086,7 +3187,7 @@ sap.ui.define([
                         return {
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
-                            CompQty: boomItem.Clabs ? boomItem.Clabs : boomItem.CompQty,
+                            CompQty: boomItem.Clabs === '0,000' ? boomItem.CompQty : boomItem.Clabs,
                             Charg: boomItem.Charg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,
@@ -3181,8 +3282,7 @@ sap.ui.define([
                 const oModel = this.getOwnerComponent().getModel();
                 const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
                 const bomSet = boomForSave[0];
-                let bomItemsSet = bomSet.flatMap(item => item.ChargList)
-                    .filter(item => item.Clabs === '' || (item.Clabs !== '' && item.Enabled === true))
+                let bomItemsSet = bomSet.flatMap(item => item.ChargList).filter(item => item.Enabled || item.Charg === '');
 
                 const oSaveParameters = {
                     IvAufnr: defectInfoValues.ProductionOrder,
@@ -3205,7 +3305,7 @@ sap.ui.define([
                         return {
                             ItemNo: boomItem.ItemNo,
                             Component: boomItem.Component,
-                            CompQty: boomItem.Clabs ? boomItem.Clabs : boomItem.CompQty,
+                            CompQty: boomItem.Clabs === '0,000' ? boomItem.CompQty : boomItem.Clabs,
                             Charg: boomItem.Charg,
                             Licha: boomItem.Licha,
                             IssueLoc: boomItem.IssueLoc,

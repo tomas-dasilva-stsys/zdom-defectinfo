@@ -18,7 +18,7 @@ sap.ui.define([], function () {
         },
 
         hasAvailableStockAndMultiple: function (aChargList, bHasStock) {
-            return aChargList && aChargList.length > 1 && bHasStock === true;
+            return aChargList && aChargList.length >= 1 && bHasStock === true;
         },
 
         hasAvailableStockAndSingle: function (aChargList, bHasStock) {

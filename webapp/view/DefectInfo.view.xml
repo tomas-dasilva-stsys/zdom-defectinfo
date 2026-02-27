@@ -455,16 +455,15 @@
                                 <Text text="{boomData>CompQty}" />
                                 <FlexBox>
                                     <MultiComboBox
-                                        visible="{parts: ['boomData>ChargList', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndMultiple'}"
+                                        visible="{parts: ['boomData>ChargListFiltered', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndMultiple'}"
                                         selectedKeys="{boomData>SelectedCharg}"
                                         showSecondaryValues="true"
                                         selectionChange="onChargListMultiComboBoxSelectionChange"
                                         width="100%"
                                         items="{
-				                        path: 'boomData>ChargList',
-                                        templateShareable: false,
-				                        sorter: { path: 'Charg' }
-                                        }"
+                                            path: 'boomData>ChargListFiltered',
+                                            templateShareable: false
+				                        }"
                                     >
                                         <core:ListItem
                                             key="{boomData>Charg}"
