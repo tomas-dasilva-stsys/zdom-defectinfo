@@ -13,21 +13,23 @@ sap.ui.define([
     "zdom/zdom/model/AppJsonModel",
     "zdom/zdom/model/formatter",
     "sap/m/MessageToast",
+	"sap/m/App",
 ],
     function (Controller,
-        JSONModel,
-        Fragment,
-        Filter,
-        FilterOperator,
-        ODataModel,
-        MessagePopover,
-        MessagePopoverItem,
-        MessageBox,
-        Service,
-        MatchcodesService,
-        AppJsonModel,
-        formatter,
-        MessageToast,
+	JSONModel,
+	Fragment,
+	Filter,
+	FilterOperator,
+	ODataModel,
+	MessagePopover,
+	MessagePopoverItem,
+	MessageBox,
+	Service,
+	MatchcodesService,
+	AppJsonModel,
+	formatter,
+	MessageToast,
+	App,
     ) {
         "use strict";
         let inputId;
@@ -2806,6 +2808,22 @@ sap.ui.define([
                 const selectedItems = oMultiComboBox.getSelectedItems();
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
 
+                if (selectedItems.length === 0) {
+                    oMultiComboBox.setValueState("Error");
+                    oMultiComboBox.setValueStateText(oResourceBundle.getText("noEmptyBatch"));
+
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', false);
+                }
+
+                if (selectedItems.length > 0) {
+                    oMultiComboBox.setValueState("None");
+                    oMultiComboBox.setValueStateText("");
+
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', true);
+                    AppJsonModel.setInnerProperty('/Enabled', 'SaveAndPrintBtn', true);
+                }
+
                 const parseFormattedNumber = (str) => {
                     if (!str || str === "") return 0;
                     if (typeof str === 'number') return str;
@@ -2927,7 +2945,7 @@ sap.ui.define([
                 let totalMessage;
                 if (accumulatedSum >= requiredQuantity) {
                     totalMessage = oResourceBundle.getText("quantityCompleted", [formatNumber(accumulatedSum), formatNumber(requiredQuantity)]);
-                    this.toggleSaveButton();
+                    // this.toggleSaveButton();
                 } else {
                     totalMessage = oResourceBundle.getText("actualQuantity", [formatNumber(accumulatedSum), formatNumber(remainingQuantity)]);
                     AppJsonModel.setInnerProperty('/Enabled', 'SaveBtn', false);
@@ -3089,17 +3107,31 @@ sap.ui.define([
                         }
                     }
                 }
-
                 // Verificar si hay algún lote con stock disponible
-                const hasRealStock = aChargList.some(c => parseFormattedNumber(c.OriginalClabs) > 0);
+                // const hasRealStock = aChargList.some(c => parseFormattedNumber(c.OriginalClabs) > 0);
 
-                if (hasRealStock) {
-                    const hasAvailable = aChargList.some(charge => parseFormattedNumber(charge.Clabs) > 0);
-                    oModel.setProperty(sRowPath + "/HasAvailableStock", hasAvailable);
-                    oModel.setProperty(sRowPath + "/Message", hasAvailable ? "" : oResourceBundle.getText("noStock"));
-                    this.toggleSaveButton();
+                // if (hasRealStock) {
+                //     const hasAvailable = aChargList.some(charge => parseFormattedNumber(charge.Clabs) > 0);
+                //     oModel.setProperty(sRowPath + "/HasAvailableStock", hasAvailable);
+                //     oModel.setProperty(sRowPath + "/Message", hasAvailable ? "" : oResourceBundle.getText("noStock"));
+                //     this.toggleSaveButton();
+                // }
+                
+                // Actualizar HasAvailableStock y Message de la fila que disparó el recálculo
+                const sOriginalPath = oBindingContext.getPath();
+                const aOriginalChargList = oModel.getProperty(sOriginalPath + "/ChargList");
+                const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
+
+                if (aOriginalChargList) {
+                    const hasRealStock = aOriginalChargList.some(c => parseFormattedNumber(c.OriginalClabs) > 0);
+
+                    if (hasRealStock) {
+                        const hasAvailable = aOriginalChargList.some(charge => parseFormattedNumber(charge.Clabs) > 0);
+                        oModel.setProperty(sOriginalPath + "/HasAvailableStock", hasAvailable);
+                        oModel.setProperty(sOriginalPath + "/Message", hasAvailable ? "" : oResourceBundle.getText("noStock"));
+                        // this.toggleSaveButton();
+                    }
                 }
-
             },
 
             // Mostrar mensaje con,
@@ -3410,8 +3442,8 @@ sap.ui.define([
             onPressReprint: function () {
                 const that = this;
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
-                const emptyFields = this.checkValueState();
-                if (emptyFields) return;
+                // const emptyFields = this.checkValueState();
+                // if (emptyFields) return;
 
                 const oModel = this.getOwnerComponent().getModel();
                 const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');
@@ -3482,8 +3514,8 @@ sap.ui.define([
             onPressPreview: function () {
                 const that = this;
                 const oResourceBundle = this.getView().getModel("i18n").getResourceBundle();
-                const emptyFields = this.checkValueState();
-                if (emptyFields) return;
+                // const emptyFields = this.checkValueState();
+                // if (emptyFields) return;
 
                 const oModel = this.getOwnerComponent().getModel();
                 const defectInfoValues = AppJsonModel.getProperty('/DefectInfo');

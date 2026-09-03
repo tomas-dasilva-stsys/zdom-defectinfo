@@ -417,7 +417,6 @@
                     fixedLayout="Strict"
                     autoPopinMode="true"
                     contextualWidth="Auto"
-                    growing="true"
                     items="{path: 'boomData>/'}"
                     noDataText="{i18n>noData}"
                 >
@@ -472,10 +471,10 @@
                                             additionalText="{boomData>Clabs}"
                                         />
                                     </MultiComboBox>
-                                    <Text
+                                    <!-- <Text
                                         text="{boomData>Charg}"
-                                        visible="{parts: ['boomData>ChargList', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndSingle'}"
-                                    />
+                                        visible="{parts: ['boomData>ChargListFiltered', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndSingle'}"
+                                    /> -->
                                 </FlexBox>
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
@@ -505,14 +504,12 @@
                 />
                 <Button
                     id="reprintBtn"
-                    enabled="{AppJsonModel>/Enabled/ReprintBtn}"
                     text="{i18n>reprint}"
                     tooltip="{i18n>reprint}"
                     press="onPressReprint"
                 />
                 <Button
                     id="previewBtn"
-                    enabled="{AppJsonModel>/Enabled/PreviewBtn}"
                     text="{i18n>preview}"
                     tooltip="{i18n>preview}"
                     press="onPressPreview"

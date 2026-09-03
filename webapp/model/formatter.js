@@ -18,11 +18,22 @@ sap.ui.define([], function () {
         },
 
         hasAvailableStockAndMultiple: function (aChargList, bHasStock) {
-            return aChargList && aChargList.length >= 1 && bHasStock === true;
+            if (!aChargList || bHasStock !== true) return false;
+            // const aValid = aChargList.filter(function (item) { return item.Charg && item.Charg !== ""; });
+            // return aValid.length >= 1; // solo múltiples
+            return aChargList.length >= 1;
         },
 
         hasAvailableStockAndSingle: function (aChargList, bHasStock) {
-            return aChargList && aChargList.length === 1 && bHasStock === true;
+            if (!aChargList || bHasStock !== true) return false;
+            // const aValid = aChargList.filter(function (item) { return item.Charg && item.Charg !== ""; });
+            return aChargList.length === 1; // solo único
+        },
+
+        getChargText: function (aChargListFiltered) {
+            if (!aChargListFiltered || aChargListFiltered.length === 0) return "";
+            const aValid = aChargListFiltered.filter(function (item) { return item.Charg && item.Charg !== ""; });
+            return aValid.length === 1 ? aValid[0].Charg : "";
         }
     }
 });
