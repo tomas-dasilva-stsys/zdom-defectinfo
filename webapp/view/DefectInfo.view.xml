@@ -417,7 +417,6 @@
                     fixedLayout="Strict"
                     autoPopinMode="true"
                     contextualWidth="Auto"
-                    growing="true"
                     items="{path: 'boomData>/'}"
                     noDataText="{i18n>noData}"
                 >
@@ -455,16 +454,15 @@
                                 <Text text="{boomData>CompQty}" />
                                 <FlexBox>
                                     <MultiComboBox
-                                        visible="{= ${boomData>ChargList}.length > 1 }"
+                                        visible="{parts: ['boomData>ChargListFiltered', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndMultiple'}"
                                         selectedKeys="{boomData>SelectedCharg}"
                                         showSecondaryValues="true"
                                         selectionChange="onChargListMultiComboBoxSelectionChange"
                                         width="100%"
                                         items="{
-				                        path: 'boomData>ChargList',
-                                        templateShareable: false,
-				                        sorter: { path: 'Charg' }
-                                        }"
+                                            path: 'boomData>ChargListFiltered',
+                                            templateShareable: false
+				                        }"
                                     >
                                         <core:ListItem
                                             key="{boomData>Charg}"
@@ -473,10 +471,10 @@
                                             additionalText="{boomData>Clabs}"
                                         />
                                     </MultiComboBox>
-                                    <Text
+                                    <!-- <Text
                                         text="{boomData>Charg}"
-                                        visible="{= ${boomData>ChargList}.length === 1 }"
-                                    />
+                                        visible="{parts: ['boomData>ChargListFiltered', 'boomData>HasAvailableStock'], formatter: '.formatter.hasAvailableStockAndSingle'}"
+                                    /> -->
                                 </FlexBox>
                                 <Text text="{boomData>CompUnit}" />
                                 <Text text="{boomData>Message}" />
@@ -498,13 +496,6 @@
                 />
                 <ToolbarSpacer />
                 <Button
-                    id="previewBtn"
-                    enabled="{AppJsonModel>/Enabled/PreviewBtn}"
-                    text="{i18n>preview}"
-                    tooltip="{i18n>preview}"
-                    press="onPressPreview"
-                />
-                <Button
                     id="saveAndPrintBtn"
                     enabled="{AppJsonModel>/Enabled/SaveAndPrintBtn}"
                     text="{i18n>saveAndPrint}"
@@ -513,10 +504,15 @@
                 />
                 <Button
                     id="reprintBtn"
-                    enabled="{AppJsonModel>/Enabled/ReprintBtn}"
                     text="{i18n>reprint}"
                     tooltip="{i18n>reprint}"
                     press="onPressReprint"
+                />
+                <Button
+                    id="previewBtn"
+                    text="{i18n>preview}"
+                    tooltip="{i18n>preview}"
+                    press="onPressPreview"
                 />
                 <Button
                     id="saveAndDupBtn"
